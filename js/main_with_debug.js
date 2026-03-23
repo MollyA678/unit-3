@@ -115,18 +115,18 @@ function createBubbles(cityPop){
 	var container = svg.append("g")
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
+ // Max & min pop
+    var minPop = d3.min(cityPop, d => d.population);
+    var maxPop = d3.max(cityPop, d => d.population);
+
  // XY scale
     var x = d3.scaleLinear()
-        .range([90, 810])
+        .range([0, innerWidth])
         .domain([0, cityPop.length - 1]);
 	// circles were going off chart 	
 	var y = d3.scaleLinear()
     .range([innerHeight, 0])  
     .domain([minPop, maxPop]);
-
-    // Max & min pop
-    var minPop = d3.min(cityPop, d => d.population);
-    var maxPop = d3.max(cityPop, d => d.population);
 
     // Circles with color scale
     var color = d3.scaleLinear()
@@ -154,6 +154,7 @@ container.selectAll("circle")
         .attr("x", (d, i) => x(i))
         .attr("y", d => y(d.population))
         .attr("text-anchor", "middle")
+		.attr("dy", "0.35em")
         .text(d => d.city);
 
     // Moving it around
