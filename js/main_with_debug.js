@@ -96,8 +96,8 @@ function addEvents(){
 function createBubbles(cityPop){
 
     // SVG 
-    var width = 600;
-    var height = 300;
+    var width = 950;
+    var height = 550;
 
     var svg = d3.select("#myDiv")
         .append("svg")
