@@ -121,10 +121,8 @@ function createBubbles(cityPop){
 
  // XY scale
  // Had some axis overlap issues
-    var maxRadius = Math.sqrt((maxPop * 0.01) / Math.PI);
-
 	var x = d3.scaleLinear()
-    .range([maxRadius + 10, innerWidth - maxRadius - 10])
+    .range([60, innerWidth - 60])
     .domain([0, cityPop.length - 1]);
 	// circles were going off chart 	
 	var y = d3.scaleLinear()
