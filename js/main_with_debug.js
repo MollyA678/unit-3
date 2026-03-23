@@ -99,6 +99,11 @@ function createBubbles(cityPop){
     var width = 950;
     var height = 550;
 
+	// Margins because the circles are still going off the chart
+	var margin = {top: 50, right: 50, bottom: 50, left: 80};
+    var innerWidth = width - margin.left - margin.right;
+    var innerHeight = height - margin.top - margin.bottom;
+
     var svg = d3.select("#myDiv")
         .append("svg")
         .attr("width", width)
@@ -106,13 +111,17 @@ function createBubbles(cityPop){
 		.attr("class", "container")
 		.style("background-color", "rgba(0,0,0,0.2)");
 
+	// Shifting the margins
+	var container = svg.append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
  // XY scale
     var x = d3.scaleLinear()
         .range([90, 810])
         .domain([0, cityPop.length - 1]);
 	// circles were going off chart 	
 	var y = d3.scaleLinear()
-    .range([height - 60, 60])  
+    .range([innerHeight, 0])  
     .domain([minPop, maxPop]);
 
     // Max & min pop
@@ -123,27 +132,22 @@ function createBubbles(cityPop){
     var color = d3.scaleLinear()
         .range(["#FDBE85", "#D94701"])
         .domain([minPop, maxPop]);
-    var circles = svg.selectAll(".circles")
+container.selectAll("circle")
         .data(cityPop)
         .enter()
         .append("circle")
-        .attr("class", "circles")
-        .attr("id", d => d.city)
+        .attr("cx", (d, i) => x(i))
+        .attr("cy", d => y(d.population))
         .attr("r", function(d){
             var area = d.population * 0.01;
             return Math.sqrt(area / Math.PI);
         })
-        .attr("cx", (d, i) => x(i))
-		// circles were going off chart
-        .attr("cy", function(d){
-    var r = Math.sqrt((d.population * 0.01) / Math.PI);
-    return Math.max(r + 10, Math.min(height - r - 10, y(d.population)));
-})
         .style("fill", d => color(d.population))
         .style("stroke", "black");
 
+
     // Labels
-    svg.selectAll("text")
+    container.selectAll("text")
         .data(cityPop)
         .enter()
         .append("text")
@@ -154,10 +158,8 @@ function createBubbles(cityPop){
 
     // Moving it around
     var yAxis = d3.axisLeft(y);
-    svg.append("g")
-        .attr("class", "axis")
-        .attr("transform", "translate(70, 0)")
-        .call(d3.axisLeft(y));
+    container.append("g")
+        .call(yAxis);
 }
 
 document.addEventListener('DOMContentLoaded', initialize);
