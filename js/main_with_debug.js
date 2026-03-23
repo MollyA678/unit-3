@@ -110,9 +110,10 @@ function createBubbles(cityPop){
     var x = d3.scaleLinear()
         .range([90, 810])
         .domain([0, cityPop.length - 1]);
+	// circles were going off chart 	
 	var y = d3.scaleLinear()
-        .range([440, 95])
-        .domain([minPop, maxPop]);
+    .range([height - 60, 60])  
+    .domain([minPop, maxPop]);
 
     // Max & min pop
     var minPop = d3.min(cityPop, d => d.population);
@@ -133,7 +134,11 @@ function createBubbles(cityPop){
             return Math.sqrt(area / Math.PI);
         })
         .attr("cx", (d, i) => x(i))
-        .attr("cy", d => y(d.population))
+		// circles were going off chart
+        .attr("cy", function(d){
+    var r = Math.sqrt((d.population * 0.01) / Math.PI);
+    return Math.max(r + 10, Math.min(height - r - 10, y(d.population)));
+})
         .style("fill", d => color(d.population))
         .style("stroke", "black");
 
@@ -151,8 +156,8 @@ function createBubbles(cityPop){
     var yAxis = d3.axisLeft(y);
     svg.append("g")
         .attr("class", "axis")
-        .attr("transform", "translate(50, 0)")
-        .call(yAxis);
+        .attr("transform", "translate(70, 0)")
+        .call(d3.axisLeft(y));
 }
 
 document.addEventListener('DOMContentLoaded', initialize);
