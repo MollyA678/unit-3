@@ -95,37 +95,64 @@ function addEvents(){
 // Function for the bubbles
 function createBubbles(cityPop){
 
-    // Create SVG container
+    // SVG 
     var width = 600;
     var height = 300;
 
     var svg = d3.select("#myDiv")
         .append("svg")
         .attr("width", width)
-        .attr("height", height);
+        .attr("height", height)
+		.attr("class", "container")
+		.style("background-color", "rgba(0,0,0,0.2)");
 
-    // Scale size and create
-    var radiusScale = d3.scaleSqrt()
-        .domain([0, d3.max(cityPop, d => d.population)])
-        .range([10, 50]);
+ // XY scale
+    var x = d3.scaleLinear()
+        .range([90, 810])
+        .domain([0, cityPop.length - 1]);
+	var y = d3.scaleLinear()
+        .range([440, 95])
+        .domain([minPop, maxPop]);
 
-    var circles = svg.selectAll("circle")
+    // Max & min pop
+    var minPop = d3.min(cityPop, d => d.population);
+    var maxPop = d3.max(cityPop, d => d.population);
+
+    // Circles with color scale
+    var color = d3.scaleLinear()
+        .range(["#FDBE85", "#D94701"])
+        .domain([minPop, maxPop]);
+    var circles = svg.selectAll(".circles")
         .data(cityPop)
         .enter()
         .append("circle")
-        .attr("cx", (d, i) => (i * 120) + 80)
-        .attr("cy", height / 2)
-        .attr("r", d => radiusScale(d.population))
+        .attr("class", "circles")
+        .attr("id", d => d.city)
+        .attr("r", function(d){
+            var area = d.population * 0.01;
+            return Math.sqrt(area / Math.PI);
+        })
+        .attr("cx", (d, i) => x(i))
+        .attr("cy", d => y(d.population))
+        .style("fill", d => color(d.population))
+        .style("stroke", "black");
 
     // Labels
-    var labels = svg.selectAll("text")
+    svg.selectAll("text")
         .data(cityPop)
         .enter()
         .append("text")
-        .attr("x", (d, i) => (i * 120) + 80)
-        .attr("y", height / 2)
+        .attr("x", (d, i) => x(i))
+        .attr("y", d => y(d.population))
         .attr("text-anchor", "middle")
         .text(d => d.city);
+
+    // Moving it around
+    var yAxis = d3.axisLeft(y);
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(50, 0)")
+        .call(yAxis);
 }
 
 document.addEventListener('DOMContentLoaded', initialize);
