@@ -96,7 +96,7 @@ function addEvents(){
 function createBubbles(cityPop){
 
     // SVG 
-    var width = 950;
+    var width = 1050;
     var height = 550;
 
 	// Margins because the circles are still going off the chart
