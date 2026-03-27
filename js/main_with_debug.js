@@ -38,7 +38,8 @@ function makeMap(topoData, csvData) {
 
     // Using mercator and trying to rotate it to approximate the Hungarian national projection for visualization purposes. Nevermind, that failed too.
 	// Why doesn't the d3-geo projection library not have a oblique projection option?
-	var projection = d3.geoMercator()                          
+	var projection = d3.geoMercator()
+	.center([19.5, 47])                          
     .fitSize([width, height], geojson);
 
 
@@ -69,7 +70,7 @@ function makeMap(topoData, csvData) {
         .attr("class", "county")
 		.attr("fill", function(d) {
         var value = dataMap[d.properties.iso_3166_2];
-        return value ? colorScale(value) : "#ccc";
+        return value != null ? colorScale(value) : "#ccc";
     });
 
 	// Graticule
