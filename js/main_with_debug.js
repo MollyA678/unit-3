@@ -51,9 +51,10 @@ function makeMap(topoData, csvData) {
 
 	csvData.forEach(function(d) {
         console.log("Processing CSV row:", d);
-    	dataMap[d.iso_3166_2] = +d.fdi_huf_millions;
+    	dataMap[d.iso_3166_2] = d.fdi_huf_millions;
+        
 	});
-
+     console.log("Data Map:", dataMap);
 	// Color scale: Needs domain array work with ckmeans clustering. jenks is a placeholder
 	var values = csvData.map(d => +d.fdi_huf_millions);
 
