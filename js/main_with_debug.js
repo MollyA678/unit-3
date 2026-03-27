@@ -15,6 +15,9 @@ Promise.all([
     var topoData = data[0];
     var csvData = data[1];
 
+	window.topoData = topoData;  
+	window.csvData = csvData;
+
     console.log("TopoJSON:", topoData);
     console.log("CSV:", csvData);
 
@@ -79,5 +82,3 @@ function makeMap(topoData, csvData) {
     	.attr("d", path);
 }
 
-console.log(geojson.features.length);
-console.log(geojson.features);
