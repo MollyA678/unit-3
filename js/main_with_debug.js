@@ -38,7 +38,7 @@ function makeMap(topoData, csvData) {
 	var projection = d3.geoTransverseMercator()
     .center([19.5, 47])        
     .rotate([-19.5, -47])     
-    .scale(6000)               
+    .scale(9000)               
     .translate([width / 2, height / 2]);
 
     var path = d3.geoPath()
