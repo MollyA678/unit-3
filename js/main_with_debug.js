@@ -1,167 +1,80 @@
-// This is the main JavaScript file copied from Activity 3. All other comments are new 
-function initialize(){
-	cities()
-};
+// SVG
+var width = 800;
+var height = 600;
+var svg = d3.select("#myDiv")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
 
-function cities(){
-var cityPop = [
-	{ 
-		city: 'Madison',
-		population: 233209
-	},
-	{
-		city: 'Milwaukee',
-		population: 594833
-	},
-	{
-		city: 'Green Bay',
-		population: 104057
-	},
-	{
-		city: 'Superior',
-		population: 27244
-	}
-];
-var table = document.createElement("table");
-var headerRow = document.createElement("tr");
-table.appendChild(headerRow);
-headerRow.insertAdjacentHTML('beforeend', '<th>City</th><th>Population</th>');
-cityPop.forEach(function(cityObject){
-	var rowHtml = '<tr><td>' + cityObject.city + '</td><td>' + cityObject.population + '</td></tr>';
-	table.insertAdjacentHTML('beforeend', rowHtml);
+// Promise.all 
+Promise.all([
+    d3.json("./data/HungaryCounties.topojson"),
+    d3.csv("./data/HungaryCounties.csv")
+]).then(function(data) {
+
+    var topoData = data[0];
+    var csvData = data[1];
+
+    console.log("TopoJSON:", topoData);
+    console.log("CSV:", csvData);
+
+    makeMap(topoData, csvData);
+
+}).catch(function(error){
+    console.log(error);
 });
-document.querySelector("#myDiv").appendChild(table);
-
-addColumns(cityPop)
-addEvents()
-// Calling Bubbles
-createBubbles(cityPop)
-};
 
 
-function addColumns(cityPop){
-    
-    document.querySelectorAll("tr").forEach(function(row, i){
+function makeMap(topoData, csvData) {
 
-    	if (i == 0){
-    		row.insertAdjacentHTML('beforeend', '<th>City Size</th>');
-    	} else {
+    // convert TopoJSON to GeoJSON
+    var geojson = topojson.feature(
+        topoData,
+        topoData.objects.HungaryCounties
+    );
 
-    		var citySize;
+    // Using oblique mercator from the d3 projection library to approximate the Hungarian national projection (EOV) for visualization purposes
+	var projection = d3.geoObliqueMercator()
+ 		.center([19.5, 47])      // Hungary center
+    	.rotate([-19.5, -47])    // aligns projection axis
+    	.scale(6000)
+    	.translate([width / 2, height / 2]);
 
-    		if (cityPop[i-1].population < 100000){
-    			citySize = 'Small';
+    var path = d3.geoPath()
+        .projection(projection);
+	
+	// CSV values to map
+	var dataMap = {};
 
-    		} else if (cityPop[i-1].population < 500000){
-				citySize = 'Medium';
-
-    		} else {
-    			citySize = 'Large';
-    		};
-			row.insertAdjacentHTML('beforeend', '<td>' + citySize + '</td>');
-    	};
-    });
-};
-
-function addEvents(){
-
-    var table = document.querySelector("table");
-	table.addEventListener("mouseover", function(){
-		
-		var color = "rgb(";
-
-		for (var i=0; i<3; i++){
-
-			var random = Math.round(Math.random() * 255);
-			color += random;
-
-			if (i<2){
-				color += ",";
-			
-			} else {
-				color += ")";
-		};
-	    };
-		table.style.color = color;
+	csvData.forEach(function(d) {
+    	dataMap[d.iso_3166_2] = +d.fdi_huf_millions;
 	});
 
-	function clickme(){
+	// Color scale
+	var colorScale = d3.scaleSequential()
+		.domain([
+        d3.min(csvData, d => +d.fdi_huf_millions),
+        d3.max(csvData, d => +d.fdi_huf_millions)
+    	])
+    	.interpolator(d3.interpolateBlues);
 
-		alert('Hey, you clicked me!');
-	};
-	table.addEventListener("click", clickme)
-};
-
-// Function for the bubbles
-function createBubbles(cityPop){
-
-    // SVG 
-    var width = 1050;
-    var height = 550;
-
-	// Margins because the circles are still going off the chart
-	var margin = {top: 50, right: 50, bottom: 50, left: 80};
-    var innerWidth = width - margin.left - margin.right;
-    var innerHeight = height - margin.top - margin.bottom;
-
-    var svg = d3.select("#myDiv")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height)
-		.attr("class", "container")
-		.style("background-color", "rgba(0,0,0,0.2)");
-
-	// Shifting the margins
-	var container = svg.append("g")
-        .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
- // Max & min pop
-    var minPop = d3.min(cityPop, d => d.population);
-    var maxPop = d3.max(cityPop, d => d.population);
-
- // XY scale
- // Had some axis overlap issues
-	var x = d3.scaleLinear()
-    .range([60, innerWidth - 60])
-    .domain([0, cityPop.length - 1]);
-	// circles were going off chart 	
-	var y = d3.scaleLinear()
-    .range([innerHeight, 0])  
-    .domain([minPop, maxPop]);
-
-    // Circles with color scale
-    var color = d3.scaleLinear()
-        .range(["#FDBE85", "#D94701"])
-        .domain([minPop, maxPop]);
-container.selectAll("circle")
-        .data(cityPop)
+    // Creating counties
+    svg.selectAll("path")
+        .data(geojson.features)
         .enter()
-        .append("circle")
-        .attr("cx", (d, i) => x(i))
-        .attr("cy", d => y(d.population))
-        .attr("r", function(d){
-            var area = d.population * 0.01;
-            return Math.sqrt(area / Math.PI);
-        })
-        .style("fill", d => color(d.population))
-        .style("stroke", "black");
+        .append("path")
+        .attr("d", path)
+        .attr("class", "county")
+		.attr("fill", function(d) {
+        var value = dataMap[d.properties.iso_3166_2];
+        return value ? colorScale(value) : "#ccc";
+    });
 
+	// Graticule
+	var graticule = d3.geoGraticule();
 
-    // Labels
-    container.selectAll("text")
-        .data(cityPop)
-        .enter()
-        .append("text")
-        .attr("x", (d, i) => x(i))
-        .attr("y", d => y(d.population))
-        .attr("text-anchor", "middle")
-		.attr("dy", "0.35em")
-        .text(d => d.city);
-
-    // Moving it around
-    var yAxis = d3.axisLeft(y);
-    container.append("g")
-        .call(yAxis);
+	svg.append("path")
+    	.datum(graticule())
+    	.attr("class", "graticule")
+    	.attr("d", path);
 }
-
-document.addEventListener('DOMContentLoaded', initialize);
