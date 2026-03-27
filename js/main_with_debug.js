@@ -78,3 +78,6 @@ function makeMap(topoData, csvData) {
     	.attr("class", "graticule")
     	.attr("d", path);
 }
+
+console.log(geojson.features.length);
+console.log(geojson.features);
