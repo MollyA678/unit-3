@@ -41,7 +41,7 @@ function makeMap(topoData, csvData) {
 	// Why doesn't the d3-geo projection library not have a oblique projection option?
 	var projection = d3.geoMercator()                          
     projection.fitSize([width, height], geojson);
-
+    console.log("Projection:", projection);
 
     var path = d3.geoPath()
         .projection(projection);
