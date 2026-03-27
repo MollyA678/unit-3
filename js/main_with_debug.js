@@ -53,14 +53,24 @@ function makeMap(topoData, csvData) {
     	dataMap[d.iso_3166_2] = +d.fdi_huf_millions;
 	});
 
-	// Color scale
-	var colorScale = d3.scaleSequential()
-		.domain([
-        d3.min(csvData, d => +d.fdi_huf_millions),
-        d3.max(csvData, d => +d.fdi_huf_millions)
-    	])
-    	.interpolator(d3.interpolateBlues);
+	// Color scale: Needs domain array work with ckmeans clustering. jenks is a placeholder
+	var values = csvData.map(d => +d.fdi_huf_millions);
 
+
+    var breaks = ss.jenks(values, 5);
+
+    var ylgnbu5 = [
+        "#ffffcc",
+        "#a1dab4",
+        "#41b6c4",
+        "#2c7fb8",
+        "#253494"
+    ];
+
+    var colorScale = d3.scaleThreshold()
+        .domain(breaks.slice(1, -1))
+        .range(ylgnbu5);
+    	
     // Creating counties
     svg.selectAll("path")
         .data(geojson.features)
