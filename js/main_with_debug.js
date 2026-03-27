@@ -58,8 +58,7 @@ function makeMap(topoData, csvData) {
 	var values = csvData.map(d => +d.fdi_huf_millions);
 
 
-    var breaks = ss.jenks(values, 5);
-
+    
     var ylgnbu5 = [
         "#ffffcc",
         "#a1dab4",
