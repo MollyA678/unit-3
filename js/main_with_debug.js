@@ -33,12 +33,13 @@ function makeMap(topoData, csvData) {
         topoData.objects.HungaryCounties
     );
 
-    // Using oblique mercator from the d3 projection library to approximate the Hungarian national projection (EOV) for visualization purposes
-	var projection = d3.geoObliqueMercator()
- 		.center([19.5, 47])      // Hungary center
-    	.rotate([-19.5, -47])    // aligns projection axis
-    	.scale(6000)
-    	.translate([width / 2, height / 2]);
+    // Using mercator and trying to rotate it to approximate the Hungarian national projection for visualization purposes. 
+	// Why doesn't the d3-geo projection library not have a oblique projection option?
+	var projection = d3.geoTransverseMercator()
+    .center([19.5, 47])        
+    .rotate([-19.5, -47])     
+    .scale(6000)               
+    .translate([width / 2, height / 2]);
 
     var path = d3.geoPath()
         .projection(projection);
