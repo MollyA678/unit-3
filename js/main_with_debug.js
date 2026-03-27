@@ -62,7 +62,7 @@ function makeMap(topoData, csvData) {
     	.interpolator(d3.interpolateBlues);
 
     // Creating counties
-    /* svg.selectAll("path")
+    svg.selectAll("path")
         .data(geojson.features)
         .enter()
         .append("path")
@@ -71,15 +71,8 @@ function makeMap(topoData, csvData) {
 		.attr("fill", function(d) {
         var value = dataMap[d.properties.iso_3166_2];
         return value != null ? colorScale(value) : "#ccc";
-    });*/
-	svg.selectAll("path")
-    .data(geojson.features)
-    .enter()
-    .append("path")
-    .attr("d", path)
-    .attr("fill", "red")
-    .attr("stroke", "black");
-	console.log(path(geojson.features[0]));
+    });
+	
 
 	// Graticule
 	var graticule = d3.geoGraticule();
