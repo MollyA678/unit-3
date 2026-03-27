@@ -56,9 +56,9 @@ function makeMap(topoData, csvData) {
 	});
      console.log("Data Map:", dataMap);
 	// Color scale: Needs domain array work with ckmeans clustering. jenks is a placeholder
-	var values = csvData.map(d => +d.fdi_huf_millions);
+	var values = csvData.map(d => d.fdi_huf_millions);
 
-
+    var breaks = ss.ckmeans(values, 5).map(d => d3.min(d));
     
     var ylgnbu5 = [
         "#ffffcc",
