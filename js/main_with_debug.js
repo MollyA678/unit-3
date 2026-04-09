@@ -33,7 +33,7 @@ function makeMap(topoData, csvData) {
     // convert TopoJSON to GeoJSON
     var geojson = topojson.feature(
         topoData,
-        topoData.objects.HungaryCounties
+        topoData.objects.ne_10m_admin_1_states_provinces
     );
 	console.log("GeoJSON:", geojson);
  
