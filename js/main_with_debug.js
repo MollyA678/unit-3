@@ -33,7 +33,7 @@ function makeMap(topoData, csvData) {
     // convert TopoJSON to GeoJSON
     var geojson = topojson.feature(
         topoData,
-        topoData.objects.HungaryCounties
+        topoData.objects.ne_10m_admin_1_states_provinces
     );
 	console.log("GeoJSON:", geojson);
  
@@ -50,7 +50,7 @@ function makeMap(topoData, csvData) {
 	var dataMap = {};
 
 	csvData.forEach(function(d) {
-        console.log("Processing CSV row:", d);
+        d.fdi_huf_millions = +d.fdi_huf_millions;
     	dataMap[d.iso_3166_2] = d.fdi_huf_millions;
         
 	});
