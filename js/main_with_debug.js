@@ -8,7 +8,7 @@ var svg = d3.select("#myDiv")
 
 // Promise.all 
 Promise.all([
-    d3.json("./data/HungaryCounties.topojson"),
+    d3.json("./data/HungaryCounties1.topojson"),
     d3.csv("./data/HungaryCounties.csv")
 ]).then(function(data) {
 
@@ -86,11 +86,11 @@ function makeMap(topoData, csvData) {
 	
 
 	// Graticule
-	var graticule = d3.geoGraticule();
+	//var graticule = d3.geoGraticule();
 
-	svg.append("path")
-    	.datum(graticule())
-    	.attr("class", "graticule")
-    	.attr("d", path);
+	//svg.append("path")
+    //	.datum(graticule())
+    //	.attr("class", "graticule")
+    //	.attr("d", path);//
 }
 
