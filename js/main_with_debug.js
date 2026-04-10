@@ -8,7 +8,7 @@ var svg = d3.select("#myDiv")
 
 // Promise.all 
 Promise.all([
-    d3.json("./data/map.topojson"),
+    d3.json("./data/hungary1.topojson"),
     d3.csv("./data/HungaryCounties.csv")
 ]).then(function(data) {
 
@@ -33,7 +33,7 @@ function makeMap(topoData, csvData) {
     // convert TopoJSON to GeoJSON
     var geojson = topojson.feature(
         topoData,
-        topoData.objects.map
+        topoData.objects.hungary1
     );
 	console.log("GeoJSON:", geojson);
  
