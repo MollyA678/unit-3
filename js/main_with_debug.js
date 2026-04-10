@@ -118,27 +118,15 @@ function makeMap(topoData, csvData) {
 
                 return value != null ? colorScale(value) : "#ccc";
             });
-    svg.selectAll("path")
-        .data(geojson.features)
-        .enter()
-        .append("path")
-        .attr("d", path)
-        .attr("class", "county");
     }
-	// CSV values to map
-	var dataMap = {};
-    	
-    // Creating counties
+
+    // draw path
     svg.selectAll("path")
-        .data(geojson.features)
-        .enter()
-        .append("path")
-        .attr("d", path)
-        .attr("class", "county")
-		.attr("fill", function(d) {
-        var value = dataMap[d.properties.iso_3166_2];
-        return value != null ? colorScale(value) : "#ccc";
-    });
+    .data(geojson.features)
+    .enter()
+    .append("path")
+    .attr("d", path)
+    .attr("class", "county");
 	
     // initial render
     updateMap(currentVariable);
