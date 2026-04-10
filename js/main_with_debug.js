@@ -7,7 +7,7 @@ var svg = d3.select("#myDiv")
     .attr("height", height);
 var legend = d3.select("#myDiv")
     .append("svg")
-    .attr("width", 300)
+    .attr("width", 550)
     .attr("height", 60)
     .attr("id", "legend");
 
@@ -122,7 +122,7 @@ function makeMap(topoData, csvData) {
         // legend
         legend.selectAll("*").remove();
 
-        var legendWidth = 250;
+        var legendWidth = 550;
         var legendHeight = 10;
         legend.append("text")
             .attr("x", 0)
@@ -153,7 +153,7 @@ function makeMap(topoData, csvData) {
         // labels
         legendGroup.append("text")
             .attr("x", (legendWidth / colors.length) / 2)
-            .attr("y", 25)
+            .attr("y", 30)
             .attr("text-anchor", "middle")
             .text(function(d, i) {
                 var start = legendValues[i];

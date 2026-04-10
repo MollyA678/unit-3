@@ -32,6 +32,16 @@ svg {
     stroke-dasharray: 2,2;
 }
 
+.legendtext {
+    font-size: 11px;
+    text-anchor: middle;   /* center labels */
+    dominant-baseline: hanging;
+}
+
+.legendrect {
+    stroke: #333;
+    stroke-width: 0.5px;
+}
 
 /* from activity 8
 body {
