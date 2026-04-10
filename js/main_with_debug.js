@@ -74,30 +74,28 @@ function makeMap(topoData, csvData) {
 
         csvData.forEach(function(d) {
             d[variable] = +d[variable];
-            dataMap[d.iso_3166_2] = d[variable];
+            dataMap[d.iso_3166_2.trim()] = d[variable];
         });
 
-        var values = csvData.map(d => d[variable]);
+        console.log("DataMap sample:", dataMap);
 
-        var breaks = ss.ckmeans(values, 5).map(d => d3.min(d));
+        svg.selectAll("path")
+            .attr("fill", function(d) {
 
-        var colorScale = d3.scaleThreshold()
-            .domain(breaks.slice(1, -1))
-            .range([
-                "#ffffcc",
-                "#a1dab4",
-                "#41b6c4",
-                "#2c7fb8",
-                "#253494"
-            ]);
+                var key = d.properties.iso_3166_2?.trim();
+                var value = dataMap[key];
 
+                console.log("KEY:", key, "VALUE:", value);
+
+                return value != null ? "green" : "#ccc";
+            });
     svg.selectAll("path")
         .data(geojson.features)
         .enter()
         .append("path")
         .attr("d", path)
         .attr("class", "county");
-}
+    }
 	// CSV values to map
 	var dataMap = {};
     	
