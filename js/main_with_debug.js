@@ -32,7 +32,7 @@ function makeMap(topoData, csvData) {
     // convert TopoJSON to GeoJSON
     var geojson = topojson.feature(
         topoData,
-        topoData.objects.iso_3166_2
+        topoData.objects.hungary1
     );
 	console.log("GeoJSON:", geojson);
     console.log("First feature properties:", geojson.features[0].properties);
