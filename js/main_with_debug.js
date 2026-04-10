@@ -118,7 +118,7 @@ function makeMap(topoData, csvData) {
                 "#2c7fb8",
                 "#253494"
             ]);
-            
+             
         // legend
         legend.selectAll("*").remove();
 
