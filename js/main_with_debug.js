@@ -118,7 +118,7 @@ function makeMap(topoData, csvData) {
                 "#2c7fb8",
                 "#253494"
             ]);
-
+            
         // legend
         legend.selectAll("*").remove();
 
@@ -218,7 +218,7 @@ function makeMap(topoData, csvData) {
     });
 	
     // bar chart render
-    makeBarChart(csvData, currentVariable);
+    makeBarChart(csvData, currentVariable, colorScale);
 
     // map render
     updateMap(currentVariable);
@@ -227,7 +227,7 @@ function makeMap(topoData, csvData) {
     dropdown.on("change", function() {
         currentVariable = this.value;
         updateMap(currentVariable);
-        makeBarChart(csvData, currentVariable);
+        makeBarChart(csvData, currentVariable, colorScale);
     });
 
 	// Graticule

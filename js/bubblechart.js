@@ -19,7 +19,7 @@ function flanneryScale(value, min, max) {
     return minRadius + (Math.pow(value / max, 0.57) * (maxRadius - minRadius));
 }
 
-function makeBarChart(csvData, variable) {
+function makeBarChart(csvData, variable, colorScale) {
 
     // sort data
     csvData.sort((a, b) => b[variable] - a[variable]);
@@ -30,10 +30,10 @@ function makeBarChart(csvData, variable) {
 	var yScale = d3.scaleLinear()
     	.range([chartHeight, 0]);
 
-    updateBarChart(csvData, variable, xScale, yScale);
+    updateBarChart(csvData, variable, xScale, yScale, colorScale);
 }
 
-function updateBarChart(csvData, variable, xScale, yScale) {
+function updateBarChart(csvData, variable, xScale, yScale, colorScale) {
 
     // conversion
     csvData.forEach(d => d[variable] = +d[variable]);
