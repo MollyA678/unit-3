@@ -43,19 +43,19 @@ svg {
     stroke-width: 0.5px;
 }
 
-.container {
+#container {
     display: flex;
     flex-direction: row;
     align-items: flex-start;
 }
 
 /* left side = map */
-.myDiv {
+#myDiv {
     flex: 1;
 }
 
 /* right side = chart + legend stacked */
-.right-panel {
+#right-panel {
     display: flex;
     flex-direction: column;
     margin-left: 20px;

@@ -217,12 +217,12 @@ function makeMap(topoData, csvData) {
         d3.selectAll(".bar")
             .attr("stroke", null);
     });
-	
-    // bar chart render
-    makeBarChart(csvData, currentVariable);
 
     // map render
     updateMap(currentVariable);
+	
+    // bar chart render
+    makeBarChart(csvData, currentVariable);
 
     // dropdown interaction
     dropdown.on("change", function() {

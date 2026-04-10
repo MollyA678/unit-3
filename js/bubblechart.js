@@ -41,6 +41,7 @@ function updateBarChart(csvData, variable, xScale, yScale) {
     var min = d3.min(csvData, d => d[variable]);
     var max = d3.max(csvData, d => d[variable]);
 
+	xScale.domain(csvData.map(d => d.iso_3166_2));
     yScale.domain([min, max]);
 
     var bars = chart.selectAll(".bar")
