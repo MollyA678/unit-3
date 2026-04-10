@@ -10,6 +10,7 @@ var legend = d3.select("#legend-container")
     .attr("width", 550)
     .attr("height", 60)
     .attr("id", "legend");
+var colorScale;
 
 // Promise.all 
 Promise.all([
@@ -109,7 +110,7 @@ function makeMap(topoData, csvData) {
         // colors
         var domain = breaks.slice(1);
 
-        var colorScale = d3.scaleThreshold()
+        colorScale = d3.scaleThreshold()
             .domain(domain)
             .range([
                 "#ffffcc",
@@ -218,7 +219,7 @@ function makeMap(topoData, csvData) {
     });
 	
     // bar chart render
-    makeBarChart(csvData, currentVariable, colorScale);
+    makeBarChart(csvData, currentVariable);
 
     // map render
     updateMap(currentVariable);
@@ -227,7 +228,7 @@ function makeMap(topoData, csvData) {
     dropdown.on("change", function() {
         currentVariable = this.value;
         updateMap(currentVariable);
-        makeBarChart(csvData, currentVariable, colorScale);
+        makeBarChart(csvData, currentVariable);
     });
 
 	// Graticule
