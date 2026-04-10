@@ -5,6 +5,11 @@ var svg = d3.select("#myDiv")
     .append("svg")
     .attr("width", width)
     .attr("height", height);
+var legend = d3.select("#myDiv")
+    .append("svg")
+    .attr("width", 300)
+    .attr("height", 60)
+    .attr("id", "legend");
 
 // Promise.all 
 Promise.all([
@@ -57,6 +62,15 @@ function makeMap(topoData, csvData) {
 
     var currentVariable = "fdi_huf_millions";
 
+    var variableLabels = {
+    fdi_huf_millions: "FDI (HUF, millions)",
+    employment_rate: "Employment Rate (%)",
+    unemployment_rate: "Unemployment Rate (%)",
+    gross_avg_salary_huf: "Gross Average Salary (HUF)",
+    GDP_percapita_huf_thousands: "GDP per Capita (HUF, thousands)",
+    highschool_graduate_rate: "High School Graduate Rate (%)"
+    };
+
     var dropdown = d3.select("body")
         .append("select")
         .attr("id", "variableDropdown");
@@ -66,8 +80,10 @@ function makeMap(topoData, csvData) {
         .enter()
         .append("option")
         .attr("value", d => d)
-        .text(d => d.replaceAll("_", " "));    
+        .text(d => variableLabels[d]);    
 	
+    dropdown.property("value", currentVariable);
+
     function updateMap(variable) {
 
         // build data map
@@ -102,6 +118,53 @@ function makeMap(topoData, csvData) {
                 "#2c7fb8",
                 "#253494"
             ]);
+
+        // legend
+        legend.selectAll("*").remove();
+
+        var legendWidth = 250;
+        var legendHeight = 10;
+        legend.append("text")
+            .attr("x", 0)
+            .attr("y", -5)
+            .text(variableLabels[variable])
+            .style("font-size", "12px")
+            .style("font-weight", "bold");
+        // combine min + breaks for labels
+        var legendValues = [d3.min(values)].concat(breaks);
+
+        var colors = colorScale.range();
+
+        // groups
+        var legendGroup = legend.selectAll("g")
+            .data(colors)
+            .enter()
+            .append("g")
+            .attr("transform", function(d, i) {
+                return "translate(" + (i * (legendWidth / colors.length)) + ",0)";
+            });
+
+        // rectangles
+        legendGroup.append("rect")
+            .attr("width", legendWidth / colors.length)
+            .attr("height", legendHeight)
+            .attr("fill", d => d);
+
+        // labels
+        legendGroup.append("text")
+            .attr("x", 0)
+            .attr("y", 25)
+            .text(function(d, i) {
+                var start = legendValues[i];
+                var end = legendValues[i + 1];
+
+                if (end !== undefined) {
+                    return Math.round(start) + " - " + Math.round(end);
+                } else {
+                    return Math.round(start) + "+";
+                }
+            })
+            .style("font-size", "10px");    
 
         svg.selectAll("path")
             .transition()
