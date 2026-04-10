@@ -29,7 +29,6 @@ Promise.all([
 
 
 function makeMap(topoData, csvData) {
-
     // convert TopoJSON to GeoJSON
     var geojson = topojson.feature(
         topoData,
@@ -45,32 +44,62 @@ function makeMap(topoData, csvData) {
 
     var path = d3.geoPath()
         .projection(projection);
-	
-	// CSV values to map
-	var dataMap = {};
 
-	csvData.forEach(function(d) {
-        d.fdi_huf_millions = +d.fdi_huf_millions;
-    	dataMap[d.iso_3166_2] = d.fdi_huf_millions;
-        
-	});
-     console.log("Data Map:", dataMap);
-	// Color scale: Needs domain array work with ckmeans clustering. jenks is a placeholder
-	var values = csvData.map(d => d.fdi_huf_millions);
-
-    var breaks = ss.ckmeans(values, 5).map(d => d3.min(d));
-    
-    var ylgnbu5 = [
-        "#ffffcc",
-        "#a1dab4",
-        "#41b6c4",
-        "#2c7fb8",
-        "#253494"
+    //dropdown
+    var variables = [
+        "fdi_huf_millions",
+        "employment_rate",
+        "unemployment_rate",
+        "gross_avg_salary_huf",
+        "GDP_percapita_huf_thousands",
+        "highschool_graduate_rate"
     ];
 
-    var colorScale = d3.scaleThreshold()
-        .domain(breaks.slice(1, -1))
-        .range(ylgnbu5);
+    var currentVariable = "fdi_huf_millions";
+
+    var dropdown = d3.select("body")
+        .append("select")
+        .attr("id", "variableDropdown");
+
+    dropdown.selectAll("option")
+        .data(variables)
+        .enter()
+        .append("option")
+        .attr("value", d => d)
+        .text(d => d.replaceAll("_", " "));    
+	
+    function updateMap(variable) {
+
+        var dataMap = {};
+
+        csvData.forEach(function(d) {
+            d[variable] = +d[variable];
+            dataMap[d.iso_3166_2] = d[variable];
+        });
+
+        var values = csvData.map(d => d[variable]);
+
+        var breaks = ss.ckmeans(values, 5).map(d => d3.min(d));
+
+        var colorScale = d3.scaleThreshold()
+            .domain(breaks.slice(1, -1))
+            .range([
+                "#ffffcc",
+                "#a1dab4",
+                "#41b6c4",
+                "#2c7fb8",
+                "#253494"
+            ]);
+
+    svg.selectAll("path")
+        .data(geojson.features)
+        .enter()
+        .append("path")
+        .attr("d", path)
+        .attr("class", "county");
+}
+	// CSV values to map
+	var dataMap = {};
     	
     // Creating counties
     svg.selectAll("path")
@@ -84,7 +113,15 @@ function makeMap(topoData, csvData) {
         return value != null ? colorScale(value) : "#ccc";
     });
 	
+    // initial render
+    updateMap(currentVariable);
 
+    // dropdown interaction
+    dropdown.on("change", function() {
+        currentVariable = this.value;
+        updateMap(currentVariable);
+    });
+    
 	// Graticule
 	//var graticule = d3.geoGraticule();
 
