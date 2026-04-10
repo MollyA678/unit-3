@@ -45,16 +45,20 @@ svg {
 
 .container {
     display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+/* left side = map */
+.myDiv {
+    flex: 1;
+}
+
+/* right side = chart + legend stacked */
+.right-panel {
+    display: flex;
     flex-direction: column;
-    align-items: center;
-}
-
-.chart {
-    order: 1;
-}
-
-.legend-container {
-    order: 2;
+    margin-left: 20px;
 }
 
 /* from activity 8

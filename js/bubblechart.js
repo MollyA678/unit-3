@@ -1,12 +1,15 @@
 
-var chartWidth = 500;
-var chartHeight = 400;
+var margin = { top: 20, right: 20, bottom: 40, left: 50 };
+
+var chartWidth = 500 - margin.left - margin.right;
+var chartHeight = 400 - margin.top - margin.bottom;
 
 var chart = d3.select("#chart")
     .append("svg")
-    .attr("width", chartWidth)
-    .attr("height", chartHeight)
-    .attr("id", "barChart");
+    .attr("width", chartWidth + margin.left + margin.right)
+    .attr("height", chartHeight + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 // flannery
 function flanneryScale(value, min, max) {
@@ -22,12 +25,10 @@ function makeBarChart(csvData, variable) {
     csvData.sort((a, b) => b[variable] - a[variable]);
 
     var xScale = d3.scaleBand()
-        .domain(csvData.map(d => d.iso_3166_2))
-        .range([0, chartWidth])
-        .padding(0.1);
+    	.range([0, chartWidth]);
 
-    var yScale = d3.scaleLinear()
-        .range([chartHeight - 40, 20]); 
+	var yScale = d3.scaleLinear()
+    	.range([chartHeight, 0]);
 
     updateBarChart(csvData, variable, xScale, yScale);
 }
@@ -54,10 +55,11 @@ function updateBarChart(csvData, variable, xScale, yScale) {
 	// transition
 	bars.transition()
     	.duration(500)
+		.attr("fill", d => colorScale(d[variable]))
     	.attr("x", d => xScale(d.iso_3166_2))
     	.attr("width", xScale.bandwidth())
     	.attr("y", d => yScale(d[variable]))
-    	.attr("height", d => chartHeight - 40 - yScale(d[variable]));
+    	.attr("height", d => chartHeight - yScale(d[variable]));
 
 	bars
     	.on("mouseover", function(event, d) {
@@ -89,7 +91,6 @@ function updateBarChart(csvData, variable, xScale, yScale) {
 
     chart.append("g")
         .attr("class", "y-axis")
-        .attr("transform", "translate(40,0)")
         .call(yAxis);
 }
 
