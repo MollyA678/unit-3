@@ -8,7 +8,7 @@ var svg = d3.select("#myDiv")
 
 // Promise.all 
 Promise.all([
-    d3.json("./data/HungaryCounties1.topojson"),
+    d3.json("./data/hungary.topojson"),
     d3.csv("./data/HungaryCounties.csv")
 ]).then(function(data) {
 
