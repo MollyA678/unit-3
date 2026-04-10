@@ -1,5 +1,5 @@
 
-var margin = { top: 20, right: 20, bottom: 40, left: 50 };
+var margin = { top: 20, right: 20, bottom: 80, left: 80 };
 
 var chartWidth = 500 - margin.left - margin.right;
 var chartHeight = 400 - margin.top - margin.bottom;
@@ -63,25 +63,29 @@ function updateBarChart(csvData, variable, xScale, yScale) {
     	.attr("height", d => chartHeight - yScale(d[variable]));
 
 	bars
-    	.on("mouseover", function(event, d) {
+    .on("mouseover", function(event, d) {
 
-        	d3.select(this)
-            	.attr("stroke", "black")
-            	.attr("stroke-width", 1.2);
+        // highlight bar
+        d3.select(this)
+            .attr("stroke", "black")
+            .attr("stroke-width", 1.2);
 
-        	d3.selectAll(".county")
-            	.filter(c => c.properties.iso_3166_2 === d.iso_3166_2)
-            	.attr("stroke", "black")
-            	.attr("stroke-width", 1.2);
-    	})
+        // highlight matching county
+        d3.selectAll(".county")
+            .filter(function(c) {
+                return c.properties.iso_3166_2.trim() === d.iso_3166_2.trim();
+            })
+            .attr("stroke", "black")
+            .attr("stroke-width", 1.2);
+    })
 
-    	.on("mouseout", function() {
+    .on("mouseout", function() {
 
-        	d3.select(this).attr("stroke", null);
+        d3.select(this).attr("stroke", null);
 
-        	d3.selectAll(".county")
-            	.attr("stroke", null);
-    	});
+        d3.selectAll(".county")
+            .attr("stroke", null);
+    });
 
     bars.exit().remove();
 
@@ -93,6 +97,19 @@ function updateBarChart(csvData, variable, xScale, yScale) {
     chart.append("g")
         .attr("class", "y-axis")
         .call(yAxis);
+
+	chart.selectAll(".x-axis").remove();
+
+	var xAxis = d3.axisBottom(xScale);
+
+	chart.append("g")
+    	.attr("class", "x-axis")
+    	.attr("transform", "translate(0," + chartHeight + ")")
+    	.call(xAxis)
+    	.selectAll("text")
+    	.attr("transform", "rotate(-45)")
+    	.style("text-anchor", "end")
+    	.style("font-size", "10px");
 }
 
 
