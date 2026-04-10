@@ -152,19 +152,20 @@ function makeMap(topoData, csvData) {
 
         // labels
         legendGroup.append("text")
-            .attr("x", 0)
+            .attr("x", (legendWidth / colors.length) / 2)
             .attr("y", 25)
+            .attr("text-anchor", "middle")
             .text(function(d, i) {
                 var start = legendValues[i];
                 var end = legendValues[i + 1];
 
                 if (end !== undefined) {
-                    return Math.round(start) + " - " + Math.round(end);
+                    return d3.format(",")(Math.round(start)) + "–" + d3.format(",")(Math.round(end));
                 } else {
-                    return Math.round(start) + "+";
+                    return d3.format(",")(Math.round(start)) + "+";
                 }
             })
-            .style("font-size", "10px");    
+            .style("font-size", "9px");    
 
         svg.selectAll("path")
             .transition()
