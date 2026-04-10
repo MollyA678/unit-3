@@ -2,7 +2,7 @@
 var chartWidth = 500;
 var chartHeight = 400;
 
-var chart = d3.select("body")
+var chart = d3.select("#chart")
     .append("svg")
     .attr("width", chartWidth)
     .attr("height", chartHeight)
@@ -45,46 +45,37 @@ function updateBarChart(csvData, variable, xScale, yScale) {
     var bars = chart.selectAll(".bar")
         .data(csvData, d => d.iso_3166_2);
 
-    bars.enter()
-        .append("rect")
-        .attr("class", "bar")
-        .attr("x", d => xScale(d.iso_3166_2))
-        .attr("width", xScale.bandwidth())
-        .attr("y", chartHeight - 40)
-        .attr("height", 0)
-		.attr("stroke", "none")
-        .merge(bars)
-        .transition()
-        .duration(500)
-        .attr("x", d => xScale(d.iso_3166_2))
-        .attr("width", xScale.bandwidth())
-        .attr("y", function(d) {
-            return yScale(d[variable]);
-        })
-        .attr("height", function(d) {
-            return chartHeight - 40 - yScale(d[variable]);
-        })
-		.on("mouseover", function(event, d) {
+    bars = bars.enter()
+    .append("rect")
+    .attr("class", "bar")
+    .attr("stroke", "none")
+    .merge(bars);
 
-        	// highlight bar
+	// transition
+	bars.transition()
+    	.duration(500)
+    	.attr("x", d => xScale(d.iso_3166_2))
+    	.attr("width", xScale.bandwidth())
+    	.attr("y", d => yScale(d[variable]))
+    	.attr("height", d => chartHeight - 40 - yScale(d[variable]));
+
+	bars
+    	.on("mouseover", function(event, d) {
+
         	d3.select(this)
             	.attr("stroke", "black")
-            	.attr("stroke-width", 2);
+            	.attr("stroke-width", 1.2);
 
-        	// highlight matching county
         	d3.selectAll(".county")
             	.filter(c => c.properties.iso_3166_2 === d.iso_3166_2)
             	.attr("stroke", "black")
-            	.attr("stroke-width", 2);
+            	.attr("stroke-width", 1.2);
     	})
 
     	.on("mouseout", function() {
 
-        	// remove highlight from bar
-        	d3.select(this)
-            	.attr("stroke", null);
+        	d3.select(this).attr("stroke", null);
 
-        	// remove highlight from all counties
         	d3.selectAll(".county")
             	.attr("stroke", null);
     	});

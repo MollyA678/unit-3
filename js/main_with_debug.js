@@ -5,7 +5,7 @@ var svg = d3.select("#myDiv")
     .append("svg")
     .attr("width", width)
     .attr("height", height);
-var legend = d3.select("#myDiv")
+var legend = d3.select("#legend-container")
     .append("svg")
     .attr("width", 550)
     .attr("height", 60)
@@ -197,13 +197,13 @@ function makeMap(topoData, csvData) {
         // highlight county (black stroke)
         d3.select(this)
             .attr("stroke", "black")
-            .attr("stroke-width", 2);
+            .attr("stroke-width", 1.2);
 
         // highlight matching bar
         d3.selectAll(".bar")
             .filter(b => b.iso_3166_2 === key)
             .attr("stroke", "black")
-            .attr("stroke-width", 2);
+            .attr("stroke-width", 1.2);
     })
 
     .on("mouseout", function() {
