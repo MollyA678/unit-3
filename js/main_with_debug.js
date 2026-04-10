@@ -70,24 +70,53 @@ function makeMap(topoData, csvData) {
 	
     function updateMap(variable) {
 
+        // build data map
         var dataMap = {};
-
         csvData.forEach(function(d) {
-            d[variable] = +d[variable];
-            dataMap[d.iso_3166_2.trim()] = d[variable];
+        d[variable] = +d[variable];
+        dataMap[d.iso_3166_2.trim()] = d[variable];
         });
 
-        console.log("DataMap sample:", dataMap);
+        // values
+        var values = csvData
+            .map(d => d[variable])
+            .filter(v => !isNaN(v));
+
+        // ckmeans clustering
+        var clusters = ss.ckmeans(values, 5);
+
+        var breaks = clusters.map(cluster => d3.min(cluster));
+
+        console.log("Clusters:", clusters);
+        console.log("Breaks:", breaks);
+
+        // colors
+        var domain = breaks.slice(1);
+
+        var colorScale = d3.scaleThreshold()
+            .domain(domain)
+            .range([
+                "#ffffcc",
+                "#a1dab4",
+                "#41b6c4",
+                "#2c7fb8",
+                "#253494"
+            ]);
 
         svg.selectAll("path")
+            .transition()
+            .duration(500)
             .attr("fill", function(d) {
 
                 var key = d.properties.iso_3166_2?.trim();
                 var value = dataMap[key];
 
-                console.log("KEY:", key, "VALUE:", value);
+            // debug?
+                if (value == null) {
+                    console.log("Missing value for:", key);
+                }
 
-                return value != null ? "green" : "#ccc";
+                return value != null ? colorScale(value) : "#ccc";
             });
     svg.selectAll("path")
         .data(geojson.features)
