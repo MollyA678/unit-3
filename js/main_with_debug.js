@@ -190,15 +190,44 @@ function makeMap(topoData, csvData) {
     .enter()
     .append("path")
     .attr("d", path)
-    .attr("class", "county");
+    .attr("class", "county")
+    .on("mouseover", function(event, d) {
+        var key = d.properties.iso_3166_2;
+
+        // highlight county (black stroke)
+        d3.select(this)
+            .attr("stroke", "black")
+            .attr("stroke-width", 2);
+
+        // highlight matching bar
+        d3.selectAll(".bar")
+            .filter(b => b.iso_3166_2 === key)
+            .attr("stroke", "black")
+            .attr("stroke-width", 2);
+    })
+
+    .on("mouseout", function() {
+
+        // reset county
+        d3.select(this)
+            .attr("stroke", null);
+
+        // reset bars
+        d3.selectAll(".bar")
+            .attr("stroke", null);
+    });
 	
-    // initial render
+    // bar chart render
+    makeBarChart(csvData, currentVariable);
+
+    // map render
     updateMap(currentVariable);
 
     // dropdown interaction
     dropdown.on("change", function() {
         currentVariable = this.value;
         updateMap(currentVariable);
+        makeBarChart(csvData, currentVariable);
     });
 
 	// Graticule

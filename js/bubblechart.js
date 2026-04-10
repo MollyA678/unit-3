@@ -1,5 +1,112 @@
-// This is the main JavaScript file copied from Activity 3. All other comments are new 
-function initialize(){
+
+var chartWidth = 500;
+var chartHeight = 400;
+
+var chart = d3.select("body")
+    .append("svg")
+    .attr("width", chartWidth)
+    .attr("height", chartHeight)
+    .attr("id", "barChart");
+
+// flannery
+function flanneryScale(value, min, max) {
+    var minRadius = 5;
+    var maxRadius = 40;
+
+    return minRadius + (Math.pow(value / max, 0.57) * (maxRadius - minRadius));
+}
+
+function makeBarChart(csvData, variable) {
+
+    // sort data
+    csvData.sort((a, b) => b[variable] - a[variable]);
+
+    var xScale = d3.scaleBand()
+        .domain(csvData.map(d => d.iso_3166_2))
+        .range([0, chartWidth])
+        .padding(0.1);
+
+    var yScale = d3.scaleLinear()
+        .range([chartHeight - 40, 20]); 
+
+    updateBarChart(csvData, variable, xScale, yScale);
+}
+
+function updateBarChart(csvData, variable, xScale, yScale) {
+
+    // conversion
+    csvData.forEach(d => d[variable] = +d[variable]);
+
+    var min = d3.min(csvData, d => d[variable]);
+    var max = d3.max(csvData, d => d[variable]);
+
+    yScale.domain([min, max]);
+
+    var bars = chart.selectAll(".bar")
+        .data(csvData, d => d.iso_3166_2);
+
+    bars.enter()
+        .append("rect")
+        .attr("class", "bar")
+        .attr("x", d => xScale(d.iso_3166_2))
+        .attr("width", xScale.bandwidth())
+        .attr("y", chartHeight - 40)
+        .attr("height", 0)
+		.attr("stroke", "none")
+        .merge(bars)
+        .transition()
+        .duration(500)
+        .attr("x", d => xScale(d.iso_3166_2))
+        .attr("width", xScale.bandwidth())
+        .attr("y", function(d) {
+            return yScale(d[variable]);
+        })
+        .attr("height", function(d) {
+            return chartHeight - 40 - yScale(d[variable]);
+        })
+		.on("mouseover", function(event, d) {
+
+        	// highlight bar
+        	d3.select(this)
+            	.attr("stroke", "black")
+            	.attr("stroke-width", 2);
+
+        	// highlight matching county
+        	d3.selectAll(".county")
+            	.filter(c => c.properties.iso_3166_2 === d.iso_3166_2)
+            	.attr("stroke", "black")
+            	.attr("stroke-width", 2);
+    	})
+
+    	.on("mouseout", function() {
+
+        	// remove highlight from bar
+        	d3.select(this)
+            	.attr("stroke", null);
+
+        	// remove highlight from all counties
+        	d3.selectAll(".county")
+            	.attr("stroke", null);
+    	});
+
+    bars.exit().remove();
+
+    // dynamic axis
+    chart.selectAll(".y-axis").remove();
+
+    var yAxis = d3.axisLeft(yScale);
+
+    chart.append("g")
+        .attr("class", "y-axis")
+        .attr("transform", "translate(40,0)")
+        .call(yAxis);
+}
+
+
+
+
+// This is the main JavaScript file copied from Activity 3. All other comments are new to Activity 9 
+/*function initialize(){
 	cities()
 };
 
@@ -164,4 +271,4 @@ container.selectAll("circle")
         .call(yAxis);
 }
 
-document.addEventListener('DOMContentLoaded', initialize);
+document.addEventListener('DOMContentLoaded', initialize);*/
