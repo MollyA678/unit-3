@@ -91,7 +91,7 @@ function makeMap(topoData, csvData) {
         var dataMap = {};
         csvData.forEach(function(d) {
         d[variable] = +d[variable];
-        dataMap[d.iso_3166_2.trim()] = d[variable];
+        dataMap[d.iso_3166_2 = d.iso_3166_2.trim()] = d[variable];
         });
 
         // values
