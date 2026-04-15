@@ -77,11 +77,6 @@ function updateBarChart(csvData, variable, xScale, yScale) {
             })
             .attr("stroke", "black")
             .attr("stroke-width", 1.2);
-		console.log("BAR:", d.iso_3166_2);
-
-		d3.selectAll(".county").each(function(c) {
-    		console.log("MAP:", c.properties.iso_3166_2);
-		});
     })
 
     .on("mouseout", function() {
