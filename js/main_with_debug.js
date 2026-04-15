@@ -193,7 +193,7 @@ function makeMap(topoData, csvData) {
     .attr("d", path)
     .attr("class", "county")
     .on("mouseover", function(event, d) {
-        var key = d.properties.iso_3166_2;
+        var key = d.properties.iso_3166_2.trim();
 
         // highlight county (black stroke)
         d3.select(this)
@@ -202,7 +202,7 @@ function makeMap(topoData, csvData) {
 
         // highlight matching bar
         d3.selectAll(".bar")
-            .filter(b => b.iso_3166_2 === key)
+            .filter(b => b.iso_3166_2.trim() === key)
             .attr("stroke", "black")
             .attr("stroke-width", 1.2);
     })
