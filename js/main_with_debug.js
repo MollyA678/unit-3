@@ -195,11 +195,6 @@ function makeMap(topoData, csvData) {
     .on("mouseover", function(event, d) {
         var key = (d.properties.iso_3166_2 || "").trim();
 
-        console.log("Map key:", key);
-        d3.selectAll(".bar").each(function(b) {
-            console.log("Bar key:", b.iso_3166_2);
-        });
-
         // highlight county (black stroke)
         d3.select(this)
             .attr("stroke", "black")
@@ -226,16 +221,16 @@ function makeMap(topoData, csvData) {
     });
 
     // map render
-    updateMap(currentVariable);
+    makeBarChart(csvData, currentVariable);
 	
     // bar chart render
-    makeBarChart(csvData, currentVariable);
+    updateMap(currentVariable);
 
     // dropdown interaction
     dropdown.on("change", function() {
         currentVariable = this.value;
-        updateMap(currentVariable);
         makeBarChart(csvData, currentVariable);
+        updateMap(currentVariable);
     });
 
 	// Graticule
