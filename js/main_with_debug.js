@@ -221,16 +221,15 @@ function makeMap(topoData, csvData) {
     });
 
     // map render
-    updateMap(currentVariable);
-	
-    // bar chart render
     makeBarChart(csvData, currentVariable);
+    // bar chart render
+    updateMap(currentVariable);
 
     // dropdown interaction
     dropdown.on("change", function() {
         currentVariable = this.value;
-        updateMap(currentVariable);
         makeBarChart(csvData, currentVariable);
+        updateMap(currentVariable);
     });
 
 	// Graticule
