@@ -195,6 +195,11 @@ function makeMap(topoData, csvData) {
     .on("mouseover", function(event, d) {
         var key = (d.properties.iso_3166_2 || "").trim();
 
+        console.log("Map key:", key);
+        d3.selectAll(".bar").each(function(b) {
+            console.log("Bar key:", b.iso_3166_2);
+        });
+
         // highlight county (black stroke)
         d3.select(this)
             .attr("stroke", "black")
