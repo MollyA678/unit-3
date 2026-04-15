@@ -173,7 +173,7 @@ function makeMap(topoData, csvData) {
             .duration(500)
             .attr("fill", function(d) {
 
-                var key = d.properties.iso_3166_2?.trim();
+                var key = d.properties.iso_3166_2.trim();
                 var value = dataMap[key];
 
             // debug?
