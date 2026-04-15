@@ -50,6 +50,7 @@ function updateBarChart(csvData, variable, xScale, yScale) {
     bars = bars.enter()
     .append("rect")
     .attr("class", "bar")
+    .attr("id", d => "bar-" + d.iso_3166_2)
     .attr("stroke", "none")
     .merge(bars);
 

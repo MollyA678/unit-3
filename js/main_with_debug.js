@@ -91,8 +91,8 @@ function makeMap(topoData, csvData) {
         var dataMap = {};
         csvData.forEach(function(d) {
         d[variable] = +d[variable];
-        dataMap[d.iso_3166_2 = d.iso_3166_2.trim()] = d[variable];
-        });
+        dataMap[d.iso_3166_2.trim()] = d[variable];
+       });
 
         // values
         var values = csvData
@@ -201,10 +201,7 @@ function makeMap(topoData, csvData) {
             .attr("stroke-width", 1.2);
 
         // highlight matching bar
-        d3.selectAll(".bar")
-            .filter(function(b) {
-                return b && b.iso_3166_2 && b.iso_3166_2.trim() === key;
-            })
+        d3.select("#bar-" + key)
             .attr("stroke", "black")
             .attr("stroke-width", 1.2);
     })
