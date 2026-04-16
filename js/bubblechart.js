@@ -73,7 +73,7 @@ function updateBarChart(csvData, variable, xScale, yScale) {
         // highlight bar
         d3.select(this)
             .attr("stroke", "black")
-            .attr("stroke-width", 2);
+            .attr("stroke-width", 1.2);
 
         // highlight matching county
         d3.select("#county-" + d.iso_3166_2.trim())
