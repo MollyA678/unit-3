@@ -65,7 +65,6 @@ function updateBarChart(csvData, variable, xScale, yScale) {
     // bring county to front and highlight
     var countyNode = d3.select("#county-" + key);
     countyNode.raise();  
-    countyNode.style("fill", "red");
     countyNode
         .style("stroke", "black")
         .style("stroke-width", "3px");

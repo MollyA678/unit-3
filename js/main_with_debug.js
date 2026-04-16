@@ -171,7 +171,7 @@ function makeMap(topoData, csvData) {
         svg.selectAll("path")
             .transition()
             .duration(500)
-            .attr("fill", function(d) {
+            .style("fill", function(d) {
 
                 var key = (d.properties.iso_3166_2 || "").trim();
                 var value = dataMap[key];
