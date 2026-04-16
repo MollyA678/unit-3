@@ -53,40 +53,30 @@ function updateBarChart(csvData, variable, xScale, yScale) {
     .attr("id", d => "bar-" + (d.iso_3166_2 || "").trim())    .attr("stroke", "none")
     .merge(bars);
 
-	// transition
-	bars.transition()
-    	.duration(500)
-		.attr("fill", d => colorScale(d[variable]))
-    	.attr("x", d => xScale(d.iso_3166_2))
-    	.attr("width", xScale.bandwidth())
-    	.attr("y", d => yScale(d[variable]))
-    	.attr("height", d => chartHeight - yScale(d[variable]));
-
 	bars
     .on("mouseover", function(event, d) {
-
-    var key = (d.iso_3166_2 || "").trim();
-
-    console.log("Looking for:", "#county-" + key);    
-
-    // highlight bar
-    d3.select(this)
-        .attr("stroke", "black")
-        .attr("stroke-width", 1.2);
-
-    // highlight matching county 
-    d3.select("#county-" + key)
-        .attr("stroke", "black")
-        .attr("stroke-width", 2);
-})
-
+        var key = (d.iso_3166_2 || "").trim();
+        console.log("Looking for:", "#county-" + key);
+        d3.select(this)
+            .attr("stroke", "black")
+            .attr("stroke-width", 1.2);
+        d3.select("#county-" + key)
+            .attr("stroke", "black")
+            .attr("stroke-width", 2);
+    })
     .on("mouseout", function() {
-
         d3.select(this).attr("stroke", null);
-
-        d3.selectAll(".county")
-            .attr("stroke", null);
+        d3.selectAll(".county").attr("stroke", null);
     });
+
+// transition
+    bars.transition()
+        .duration(500)
+        .attr("fill", d => colorScale(d[variable]))
+        .attr("x", d => xScale(d.iso_3166_2))
+        .attr("width", xScale.bandwidth())
+        .attr("y", d => yScale(d[variable]))
+        .attr("height", d => chartHeight - yScale(d[variable]));
 
     bars.exit().remove();
 
