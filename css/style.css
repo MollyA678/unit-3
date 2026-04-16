@@ -61,6 +61,18 @@ svg {
     margin-left: 20px;
 }
 
+#tooltip {
+    position: absolute;
+    display: none;
+    background: white;
+    border: 1px solid #aaa;
+    padding: 5px 8px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 100;
+    border-radius: 3px;
+}
+
 /* from activity 8
 body {
 text-align: center;

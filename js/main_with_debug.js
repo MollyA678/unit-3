@@ -233,11 +233,11 @@ function makeMap(topoData, csvData) {
     })
     .on("mousemove", function(event) {
         // tooltip follow
-        var ttW = tooltip.node().offsetWidth;
-        var ttH = tooltip.node().offsetHeight;
+        var ttW = d3.select("#tooltip").node().offsetWidth;
+        var ttH = d3.select("#tooltip").node().offsetHeight;
         var x = Math.min(event.pageX + 12, window.scrollX + window.innerWidth  - ttW - 8);
         var y = Math.min(event.pageY + 12, window.scrollY + window.innerHeight - ttH - 8);
-        tooltip.style("left", x + "px").style("top", y + "px");
+        d3.select("#tooltip").style("left", x + "px").style("top", y + "px");
     })
 
     .on("mouseout", function() {
