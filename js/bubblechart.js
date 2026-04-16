@@ -67,6 +67,8 @@ function updateBarChart(csvData, variable, xScale, yScale) {
 
     var key = (d.iso_3166_2 || "").trim();
 
+    console.log("Looking for:", "#county-" + key);    
+
     // highlight bar
     d3.select(this)
         .attr("stroke", "black")
