@@ -45,7 +45,7 @@ function updateBarChart(csvData, variable, xScale, yScale) {
     var max = d3.max(csvData, d => d[variable]);
 
 	xScale.domain(csvData.map(d => d.iso_3166_2));
-    yScale.domain([0, max]);
+    yScale.domain([0, flanneryScale(max, 0, max)]);
 
     var bars = chart.selectAll(".bar")
         .data(csvData, d => d.iso_3166_2);
