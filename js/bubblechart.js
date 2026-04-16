@@ -30,7 +30,7 @@ function makeBarChart(csvData, variable) {
     var xScale = d3.scaleBand()
     	.range([0, chartWidth]);
 
-	var yScale = d3.scaleSqrt()
+	var yScale = d3.scaleLinear()
     	.range([chartHeight, 0]);
 
     updateBarChart(csvData, variable, xScale, yScale);
@@ -45,7 +45,7 @@ function updateBarChart(csvData, variable, xScale, yScale) {
     var max = d3.max(csvData, d => d[variable]);
 
 	xScale.domain(csvData.map(d => d.iso_3166_2));
-    yScale.domain([0, flanneryScale(max, 0, max)]);
+    yScale.domain([0, max]);
 
     var bars = chart.selectAll(".bar")
         .data(csvData, d => d.iso_3166_2);
@@ -86,8 +86,8 @@ function updateBarChart(csvData, variable, xScale, yScale) {
         .attr("fill", d => colorScale(d[variable]))
         .attr("x", d => xScale(d.iso_3166_2))
         .attr("width", xScale.bandwidth())
-        .attr("y", d => yScale(flanneryScale(d[variable], 0, max)))
-        .attr("height", d => chartHeight - yScale(flanneryScale(d[variable], 0, max)));
+        .attr("y", d => yScale(d[variable]))
+        .attr("height", d => chartHeight - yScale(d[variable]));
 
     bars.exit().remove();
 
