@@ -66,6 +66,10 @@ function updateBarChart(csvData, variable, xScale, yScale) {
 	bars
     .on("mouseover", function(event, d) {
 
+        console.log("Bar hover key:", key);
+        console.log("Selecting:", "#county-" + key);
+        console.log("Selection result:", d3.select("#county-" + key));
+        
         // highlight bar
         d3.select(this)
             .attr("stroke", "black")
@@ -76,7 +80,6 @@ function updateBarChart(csvData, variable, xScale, yScale) {
             .attr("stroke", "black")
             .attr("stroke-width", 1.2);
         
-        console.log("Trying to select:", "#county-" + d.iso_3166_2);
     })
 
     .on("mouseout", function() {
