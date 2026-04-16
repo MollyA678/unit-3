@@ -63,6 +63,9 @@ function updateBarChart(csvData, variable, xScale, yScale) {
         d3.select("#county-" + key)
             .attr("stroke", "black")
             .attr("stroke-width", "2px");
+
+        console.log("Found node:", d3.select("#county-" + key).node());
+        console.log("Current stroke:", d3.select("#county-" + key).attr("stroke"));
     })
     .on("mouseout", function() {
         d3.select(this)
