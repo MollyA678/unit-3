@@ -72,19 +72,6 @@ function makeMap(topoData, csvData) {
     highschool_graduate_rate: "High School Graduate Rate (%)"
     };
 
-    var dropdown = d3.select("body")
-        .append("select")
-        .attr("id", "variableDropdown");
-
-    dropdown.selectAll("option")
-        .data(variables)
-        .enter()
-        .append("option")
-        .attr("value", d => d)
-        .text(d => variableLabels[d]);    
-	
-    dropdown.property("value", currentVariable);
-
     function updateMap(variable) {
 
         // build data map
@@ -225,7 +212,8 @@ function makeMap(topoData, csvData) {
     makeBarChart(csvData, currentVariable);
 
     // dropdown interaction
-    dropdown.on("change", function() {
+   var dropdown = d3.select("#variableDropdown");
+   dropdown.on("change", function() {
         currentVariable = this.value;
         updateMap(currentVariable);
         makeBarChart(csvData, currentVariable);

@@ -1,8 +1,11 @@
 
 var margin = { top: 20, right: 20, bottom: 80, left: 80 };
 
-var chartWidth = 500 - margin.left - margin.right;
-var chartHeight = 400 - margin.top - margin.bottom;
+window.chartWidth = Math.floor(window.innerWidth * 0.35) - margin.left - margin.right;
+window.chartHeight = 400 - margin.top - margin.bottom;
+
+var chartWidth = window.chartWidth;
+var chartHeight = window.chartHeight;
 
 var chart = d3.select("#chart")
     .append("svg")
@@ -27,7 +30,7 @@ function makeBarChart(csvData, variable) {
     var xScale = d3.scaleBand()
     	.range([0, chartWidth]);
 
-	var yScale = d3.scaleLinear()
+	var yScale = d3.scaleSqrt()
     	.range([chartHeight, 0]);
 
     updateBarChart(csvData, variable, xScale, yScale);
@@ -42,7 +45,7 @@ function updateBarChart(csvData, variable, xScale, yScale) {
     var max = d3.max(csvData, d => d[variable]);
 
 	xScale.domain(csvData.map(d => d.iso_3166_2));
-    yScale.domain([min, max]);
+    yScale.domain([0, max]);
 
     var bars = chart.selectAll(".bar")
         .data(csvData, d => d.iso_3166_2);
@@ -60,7 +63,7 @@ function updateBarChart(csvData, variable, xScale, yScale) {
     // highlight bar
     d3.select(this)
         .attr("stroke", "black")
-        .attr("stroke-width", 1.2);
+        .attr("stroke-width", "2px");
 
     // bring county to front and highlight
     var countyNode = d3.select("#county-" + key);
@@ -83,8 +86,8 @@ function updateBarChart(csvData, variable, xScale, yScale) {
         .attr("fill", d => colorScale(d[variable]))
         .attr("x", d => xScale(d.iso_3166_2))
         .attr("width", xScale.bandwidth())
-        .attr("y", d => yScale(d[variable]))
-        .attr("height", d => chartHeight - yScale(d[variable]));
+        .attr("y", d => yScale(flanneryScale(d[variable], 0, max)))
+        .attr("height", d => chartHeight - yScale(flanneryScale(d[variable], 0, max)));
 
     bars.exit().remove();
 
