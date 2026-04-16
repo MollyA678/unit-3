@@ -192,6 +192,7 @@ function makeMap(topoData, csvData) {
     .append("path")
     .attr("d", path)
     .attr("class", "county")
+    .attr("id", d => "county-" + (d.properties.iso_3166_2 || "").trim())
     .on("mouseover", function(event, d) {
         var key = (d.properties.iso_3166_2 || "").trim();
 

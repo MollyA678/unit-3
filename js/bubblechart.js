@@ -72,10 +72,7 @@ function updateBarChart(csvData, variable, xScale, yScale) {
             .attr("stroke-width", 1.2);
 
         // highlight matching county
-        d3.selectAll(".county")
-            .filter(function(c) {
-                return c.properties.iso_3166_2.trim() === d.iso_3166_2.trim();
-            })
+        d3.select("#county-" + d.iso_3166_2.trim())
             .attr("stroke", "black")
             .attr("stroke-width", 1.2);
     })
