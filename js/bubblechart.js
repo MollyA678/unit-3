@@ -50,8 +50,7 @@ function updateBarChart(csvData, variable, xScale, yScale) {
     bars = bars.enter()
     .append("rect")
     .attr("class", "bar")
-    .attr("id", d => "bar-" + d.iso_3166_2)
-    .attr("stroke", "none")
+    .attr("id", d => "bar-" + (d.iso_3166_2 || "").trim())    .attr("stroke", "none")
     .merge(bars);
 
 	// transition
@@ -66,19 +65,18 @@ function updateBarChart(csvData, variable, xScale, yScale) {
 	bars
     .on("mouseover", function(event, d) {
 
-        var key = d.iso_3166_2.trim();
-        
-        // highlight bar
-        d3.select(this)
-            .attr("stroke", "black")
-            .attr("stroke-width", 1.2);
+    var key = (d.iso_3166_2 || "").trim();
 
-        // highlight matching county
-        d3.select("#county-" + d.iso_3166_2.trim())
-            .attr("stroke", "black")
-            .attr("stroke-width", 2);
-        
-    })
+    // highlight bar
+    d3.select(this)
+        .attr("stroke", "black")
+        .attr("stroke-width", 1.2);
+
+    // highlight matching county 
+    d3.select("#county-" + key)
+        .attr("stroke", "black")
+        .attr("stroke-width", 2);
+})
 
     .on("mouseout", function() {
 
