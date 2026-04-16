@@ -75,6 +75,8 @@ function updateBarChart(csvData, variable, xScale, yScale) {
         d3.select("#county-" + d.iso_3166_2.trim())
             .attr("stroke", "black")
             .attr("stroke-width", 1.2);
+        
+        console.log("Trying to select:", "#county-" + d.iso_3166_2);
     })
 
     .on("mouseout", function() {
