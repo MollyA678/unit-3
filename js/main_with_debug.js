@@ -13,7 +13,7 @@ var legend = d3.select("#legend-container")
 var colorScale;
 
 // tooltip
-var tooltip = d3.select("#tooltip");
+var tooltip;
  
 function showTooltip(event, countyName) {
     tooltip
@@ -57,6 +57,7 @@ Promise.all([
 
 
 function makeMap(topoData, csvData) {
+    tooltip = d3.select("#tooltip");
     // convert TopoJSON to GeoJSON
     var geojson = topojson.feature(
         topoData,
