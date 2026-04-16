@@ -55,23 +55,26 @@ function updateBarChart(csvData, variable, xScale, yScale) {
 
 	bars
     .on("mouseover", function(event, d) {
-        var key = (d.iso_3166_2 || "").trim();
-        console.log("Looking for:", "#county-" + key);
-        d3.select(this)
-            .attr("stroke", "black")
-            .attr("stroke-width", 1.2);
-        d3.select("#county-" + key)
-            .attr("stroke", "black")
-            .attr("stroke-width", "2px");
+    var key = (d.iso_3166_2 || "").trim();
 
-        console.log("Found node:", d3.select("#county-" + key).node());
-        console.log("Current stroke:", d3.select("#county-" + key).attr("stroke"));
+    // highlight bar
+    d3.select(this)
+        .attr("stroke", "black")
+        .attr("stroke-width", 1.2);
+
+    // bring county to front and highlight
+    var countyNode = d3.select("#county-" + key);
+    countyNode.raise();  // moves it to be last child = renders on top
+    countyNode
+        .style("stroke", "black")
+        .style("stroke-width", "3px");
     })
     .on("mouseout", function() {
-        d3.select(this)
-            .attr("stroke", null)
+        d3.select(this).attr("stroke", null);
+
+        d3.selectAll(".county")
+            .style("stroke", null)
             .style("stroke-width", null);
-        d3.selectAll(".county").attr("stroke", null);
     });
 
 // transition
