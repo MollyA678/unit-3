@@ -13,25 +13,24 @@ var legend = d3.select("#legend-container")
 var colorScale;
 
 // tooltip
-var tooltip;
  
 function showTooltip(event, countyName) {
-    tooltip
+    d3.select("#tooltip")
         .style("display", "block")
         .text(countyName);
  
     // Position near cursor
-    var ttW = tooltip.node().offsetWidth;
-    var ttH = tooltip.node().offsetHeight;
+    var ttW = d3.select("#tooltip").node().offsetWidth;
+    var ttH = d3.select("#tooltip").node().offsetHeight;
     var x = Math.min(event.pageX + 12, window.scrollX + window.innerWidth  - ttW - 8);
     var y = Math.min(event.pageY + 12, window.scrollY + window.innerHeight - ttH - 8);
-    tooltip
+    d3.select("#tooltip")
         .style("left", x + "px")
         .style("top",  y + "px");
 }
  
 function hideTooltip() {
-    tooltip.style("display", "none");
+    d3.select("#tooltip").style("display", "none");
 }
 
 // Promise.all 
@@ -57,7 +56,6 @@ Promise.all([
 
 
 function makeMap(topoData, csvData) {
-    tooltip = d3.select("#tooltip");
     // convert TopoJSON to GeoJSON
     var geojson = topojson.feature(
         topoData,
