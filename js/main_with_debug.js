@@ -12,6 +12,28 @@ var legend = d3.select("#legend-container")
     .attr("id", "legend");
 var colorScale;
 
+// tooltip
+var tooltip = d3.select("#tooltip");
+ 
+function showTooltip(event, countyName) {
+    tooltip
+        .style("display", "block")
+        .text(countyName);
+ 
+    // Position near cursor
+    var ttW = tooltip.node().offsetWidth;
+    var ttH = tooltip.node().offsetHeight;
+    var x = Math.min(event.pageX + 12, window.scrollX + window.innerWidth  - ttW - 8);
+    var y = Math.min(event.pageY + 12, window.scrollY + window.innerHeight - ttH - 8);
+    tooltip
+        .style("left", x + "px")
+        .style("top",  y + "px");
+}
+ 
+function hideTooltip() {
+    tooltip.style("display", "none");
+}
+
 // Promise.all 
 Promise.all([
     d3.json("./data/hungary1.topojson"),
@@ -52,17 +74,6 @@ function makeMap(topoData, csvData) {
         .projection(projection);
 
     //dropdown
-    var variables = [
-        "fdi_huf_millions",
-        "employment_rate",
-        "unemployment_rate",
-        "gross_avg_salary_huf",
-        "GDP_percapita_huf_thousands",
-        "highschool_graduate_rate"
-    ];
-
-    var currentVariable = "fdi_huf_millions";
-
     var variableLabels = {
     fdi_huf_millions: "FDI (HUF, millions)",
     employment_rate: "Employment Rate (%)",
@@ -72,6 +83,16 @@ function makeMap(topoData, csvData) {
     highschool_graduate_rate: "High School Graduate Rate (%)"
     };
 
+    // reading menu values
+    function getMenuValues() {
+        return {
+            var1: d3.select("#menu1").property("value"),
+            var2: d3.select("#menu2").property("value"),
+            var3: d3.select("#menu3").property("value")
+        };
+    }
+
+    // Map uses only menu1
     function updateMap(variable) {
 
         // build data map
@@ -155,6 +176,7 @@ function makeMap(topoData, csvData) {
             })
             .style("font-size", "9px");    
 
+        // County transition    
         svg.selectAll("path")
             .transition()
             .duration(500)
@@ -172,6 +194,12 @@ function makeMap(topoData, csvData) {
             });
     }
 
+    // iso to county name
+    var nameMap = {};
+    csvData.forEach(function(d) {
+        nameMap[d.iso_3166_2.trim()] = d.county_name;
+    });
+
     // draw path
     svg.selectAll("path")
     .data(geojson.features)
@@ -179,44 +207,68 @@ function makeMap(topoData, csvData) {
     .append("path")
     .attr("d", path)
     .attr("class", "county")
-    .attr("id", d => "county-" + (d.properties.iso_3166_2 || "").trim())
+    .attr("id", function(d) { 
+        return "county-" + (d.properties.iso_3166_2 || "").trim();
+    })
+
+    // coordinated highlight
     .on("mouseover", function(event, d) {
         var key = (d.properties.iso_3166_2 || "").trim();
+        var name = nameMap[key] || key;
 
-        // highlight county (black stroke)
+        // highlight county
         d3.select(this)
-            .attr("stroke", "black")
-            .attr("stroke-width", 1.2);
+            .raise()
+            .style("stroke", "black")
+            .style("stroke-width", "3px");
 
         // highlight matching bar
-        d3.select("#bar-" + key)
-            .attr("stroke", "black")
-            .attr("stroke-width", 1.2);
+        d3.selectAll(".chart-element")
+                .filter(function(cd) {
+                    return (cd.iso_3166_2 || "").trim() === key;
+                })
+                .style("stroke", "black")
+                .style("stroke-width", "2.5px");
+ 
+            showTooltip(event, name);
+    })
+    .on("mousemove", function(event) {
+        // tooltip follow
+        var ttW = tooltip.node().offsetWidth;
+        var ttH = tooltip.node().offsetHeight;
+        var x = Math.min(event.pageX + 12, window.scrollX + window.innerWidth  - ttW - 8);
+        var y = Math.min(event.pageY + 12, window.scrollY + window.innerHeight - ttH - 8);
+        tooltip.style("left", x + "px").style("top", y + "px");
     })
 
     .on("mouseout", function() {
 
         // reset county
         d3.select(this)
-            .attr("stroke", null);
+            .style("stroke", null)
+            .style("stroke-width", null);
 
         // reset bars
-        d3.selectAll(".bar")
-            .attr("stroke", null);
+        d3.selectAll(".chart-element")
+            .style("stroke", null)
+            .style("stroke-width", null);
+        hideTooltip();
     });
 
+    // Menu render
+        var init = getMenuValues();
+
     // map render
-    updateMap(currentVariable);
+    updateMap(init.var1);
 	
     // bar chart render
-    makeBarChart(csvData, currentVariable);
+    updateChart(csvData, init.var1, init.var2, init.var3);
 
-    // dropdown interaction
-   var dropdown = d3.select("#variableDropdown");
-   dropdown.on("change", function() {
-        currentVariable = this.value;
-        updateMap(currentVariable);
-        makeBarChart(csvData, currentVariable);
+    // dropdown interactions
+   d3.selectAll("#menu1, #menu2, #menu3").on("change", function() {
+        var v = getMenuValues();
+        updateMap(v.var1);
+        updateChart(csvData, v.var1, v.var2, v.var3);
     });
 
 	// Graticule
