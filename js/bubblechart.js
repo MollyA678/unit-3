@@ -62,10 +62,12 @@ function updateBarChart(csvData, variable, xScale, yScale) {
             .attr("stroke-width", 1.2);
         d3.select("#county-" + key)
             .attr("stroke", "black")
-            .attr("stroke-width", 2);
+            .attr("stroke-width", "2px");
     })
     .on("mouseout", function() {
-        d3.select(this).attr("stroke", null);
+        d3.select(this)
+            .attr("stroke", null)
+            .style("stroke-width", null);
         d3.selectAll(".county").attr("stroke", null);
     });
 
