@@ -66,9 +66,7 @@ function updateBarChart(csvData, variable, xScale, yScale) {
 	bars
     .on("mouseover", function(event, d) {
 
-        console.log("Bar hover key:", key);
-        console.log("Selecting:", "#county-" + key);
-        console.log("Selection result:", d3.select("#county-" + key));
+        var key = d.iso_3166_2.trim();
         
         // highlight bar
         d3.select(this)
