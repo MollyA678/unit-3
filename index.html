@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Hungary Choropleth</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/style.css">
     <script src="./lib/d3.v7.js"></script>
     <script src="./lib/topojson.js"></script>
@@ -10,24 +13,55 @@
     <script src="./lib/simple_statistics.js"></script>
 </head>
 <body>
-    <h1>Hungary Counties Choropleth</h1>   
+    <!-- navbar -->
+    <nav id="navbar">
+        <div id="nav-left">
+            <div id="nav-title-block">
+                <h1 id="main-title">Socioeconomic Factors of Hungary's Counties</h1>
+                <p id="main-subtitle">Molly Anderson &nbsp;&nbsp;&nbsp; April 2026</p>
+                <div id="map-variable-selector">
+                    <label id="menu1-label">
+                        <span class="menu-color-dot dot-red"></span>
+                        Map / X Variable
+                        <select id="menu1">
+                            <option value="fdi_huf_millions">FDI (HUF, millions)</option>
+                            <option value="employment_rate">Employment Rate (%)</option>
+                            <option value="unemployment_rate">Unemployment Rate (%)</option>
+                            <option value="gross_avg_salary_huf">Gross Average Salary (HUF)</option>
+                            <option value="GDP_percapita_huf_thousands">GDP per Capita (HUF, thousands)</option>
+                            <option value="highschool_graduate_rate">High School Graduate Rate (%)</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+        </div>
+ 
+        <div id="nav-right">
+            <div id="selection-tables">
+                <div id="table-slot-1" class="table-slot">
+                    <div class="table-slot-empty">
+                        <span class="empty-hint">Click a county to<br>view its data</span>
+                    </div>
+                </div>
+                <div id="table-slot-2" class="table-slot">
+                    <div class="table-slot-empty">
+                        <span class="empty-hint">Click a second county<br>to compare</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
     <div id="container">
         <div id="myDiv"></div>
         <div id="right-panel">
             <div id="chart"></div>
             <div id="legend-container"></div>
             <div id="menu-container">
-                <label>X / Map variable:
-                    <select id="menu1">
-                        <option value="fdi_huf_millions">FDI (HUF, millions)</option>
-                        <option value="employment_rate">Employment Rate (%)</option>
-                        <option value="unemployment_rate">Unemployment Rate (%)</option>
-                        <option value="gross_avg_salary_huf">Gross Average Salary (HUF)</option>
-                        <option value="GDP_percapita_huf_thousands">GDP per Capita (HUF, thousands)</option>
-                        <option value="highschool_graduate_rate">High School Graduate Rate (%)</option>
-                    </select>
-                </label>
-                <label>Y variable:
+                <label id="menu2-label">
+                    <span class="menu-color-dot dot-orange"></span>
+                    Y Variable
                     <select id="menu2">
                         <option value="none">None</option>
                         <option value="fdi_huf_millions">FDI (HUF, millions)</option>
@@ -38,7 +72,9 @@
                         <option value="highschool_graduate_rate">High School Graduate Rate (%)</option>
                     </select>
                 </label>
-                <label>Size variable (bubble only):
+                <label id="menu3-label">
+                    <span class="menu-color-dot dot-purple"></span>
+                    Size Variable (bubble only)
                     <select id="menu3">
                         <option value="none">None</option>
                         <option value="fdi_huf_millions">FDI (HUF, millions)</option>
@@ -52,8 +88,10 @@
             </div>
         </div>
     </div>
+    
+    <div id="tooltip"></div>
+
     <script src="./js/main_with_debug.js"></script>
     <script src="./js/bubblechart.js"></script>
-    <div id="tooltip"></div>
 </body>
 </html>

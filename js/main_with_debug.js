@@ -1,3 +1,4 @@
+// main_with_debug.js
 // SVG
 var width = 800;
 var height = 600;
@@ -11,6 +12,147 @@ var legend = d3.select("#legend-container")
     .attr("height", 60)
     .attr("id", "legend");
 var colorScale;
+
+window.selectedCounties = [];   
+window.countyDataMap = {};      
+ 
+// attribute table
+var variableLabels = {
+    fdi_huf_millions: "FDI (HUF, millions)",
+    employment_rate: "Employment Rate (%)",
+    unemployment_rate: "Unemployment Rate (%)",
+    gross_avg_salary_huf: "Gross Avg Salary (HUF)",
+    GDP_percapita_huf_thousands: "GDP per Capita (HUF k)",
+    highschool_graduate_rate: "HS Graduate Rate (%)"
+};
+ 
+var allVars = Object.keys(variableLabels);
+ 
+function getMenuValues() {
+    return {
+        var1: d3.select("#menu1").property("value"),
+        var2: d3.select("#menu2").property("value"),
+        var3: d3.select("#menu3").property("value")
+    };
+}
+ 
+function formatValue(key, val) {
+    if (val == null || isNaN(val)) return "—";
+    if (key === "fdi_huf_millions" || key === "gross_avg_salary_huf") {
+        return d3.format(",")(Math.round(val));
+    }
+    if (key === "GDP_percapita_huf_thousands") {
+        return d3.format(",")(Math.round(val));
+    }
+    return (+val).toFixed(1);
+}
+ 
+function renderAttributeTable(slotId, countyKey) {
+    var slot = document.getElementById(slotId);
+    if (!countyKey) {
+        slot.innerHTML = '<div class="table-slot-empty"><span class="empty-hint">' +
+            (slotId === "table-slot-1" ? "Click a county to<br>view its data" : "Click a second county<br>to compare") +
+            '</span></div>';
+        slot.classList.remove("has-data");
+        return;
+    }
+ 
+    var row = window.countyDataMap[countyKey];
+    if (!row) return;
+ 
+    var v = getMenuValues();
+ 
+    slot.classList.add("has-data");
+ 
+    var html = '<div class="attr-table-wrap">';
+    html += '<div class="attr-table-header">';
+    html += '<span class="attr-county-name">' + (row.county_name || countyKey) + '</span>';
+    html += '<button class="attr-close-btn" onclick="deselectCounty(\'' + countyKey + '\')">&times;</button>';
+    html += '</div>';
+    html += '<table class="attr-table">';
+ 
+    allVars.forEach(function(key) {
+        var rowClass = "";
+        if (key === v.var1) rowClass = "attr-row-red";
+        else if (v.var2 !== "none" && key === v.var2) rowClass = "attr-row-orange";
+        else if (v.var3 !== "none" && key === v.var3) rowClass = "attr-row-purple";
+ 
+        html += '<tr class="' + rowClass + '">';
+        html += '<td>' + variableLabels[key] + '</td>';
+        html += '<td>' + formatValue(key, +row[key]) + '</td>';
+        html += '</tr>';
+    });
+ 
+    html += '</table></div>';
+    slot.innerHTML = html;
+}
+ 
+function refreshAttributeTables() {
+    renderAttributeTable("table-slot-1", window.selectedCounties[0] || null);
+    renderAttributeTable("table-slot-2", window.selectedCounties[1] || null);
+}
+ 
+window.deselectCounty = function(key) {
+    var idx = window.selectedCounties.indexOf(key);
+    if (idx === -1) return;
+    window.selectedCounties.splice(idx, 1);
+    applySelectionStyles();
+    refreshAttributeTables();
+};
+ 
+// selection handling
+function applySelectionStyles() {
+    var sel = window.selectedCounties;
+ 
+    // Clear selection
+    svg.selectAll("path.county")
+        .classed("county-selected-1", false)
+        .classed("county-selected-2", false);
+ 
+    if (sel[0]) {
+        d3.select("#county-" + sel[0]).classed("county-selected-1", true);
+    }
+    if (sel[1]) {
+        d3.select("#county-" + sel[1]).classed("county-selected-2", true);
+    }
+ 
+    // Chart elements
+    d3.selectAll(".chart-element")
+        .classed("chart-selected-1", false)
+        .classed("chart-selected-2", false);
+ 
+    if (sel[0]) {
+        d3.selectAll(".chart-element")
+            .filter(function(d) { return d && (d.iso_3166_2 || "").trim() === sel[0]; })
+            .classed("chart-selected-1", true);
+    }
+    if (sel[1]) {
+        d3.selectAll(".chart-element")
+            .filter(function(d) { return d && (d.iso_3166_2 || "").trim() === sel[1]; })
+            .classed("chart-selected-2", true);
+    }
+}
+ 
+function handleCountyClick(key) {
+    var sel = window.selectedCounties;
+    var idx = sel.indexOf(key);
+ 
+    if (idx !== -1) {
+        // deselect
+        sel.splice(idx, 1);
+    } else {
+        if (sel.length < 2) {
+            sel.push(key);
+        } else {
+            // Replace selection 1
+            sel.shift();
+            sel.push(key);
+        }
+    }
+ 
+    applySelectionStyles();
+    refreshAttributeTables();
+}
 
 // tooltip
  
@@ -48,13 +190,17 @@ Promise.all([
     console.log("TopoJSON:", topoData);
     console.log("CSV:", csvData);
 
+    csvData.forEach(function(d) {
+        window.countyDataMap[d.iso_3166_2.trim()] = d;
+    });
+
     makeMap(topoData, csvData);
 
 }).catch(function(error){
     console.log(error);
 });
 
-
+// Map rendering
 function makeMap(topoData, csvData) {
     // convert TopoJSON to GeoJSON
     var geojson = topojson.feature(
@@ -72,24 +218,10 @@ function makeMap(topoData, csvData) {
     var path = d3.geoPath()
         .projection(projection);
 
-    //dropdown
-    var variableLabels = {
-    fdi_huf_millions: "FDI (HUF, millions)",
-    employment_rate: "Employment Rate (%)",
-    unemployment_rate: "Unemployment Rate (%)",
-    gross_avg_salary_huf: "Gross Average Salary (HUF)",
-    GDP_percapita_huf_thousands: "GDP per Capita (HUF, thousands)",
-    highschool_graduate_rate: "High School Graduate Rate (%)"
-    };
-
-    // reading menu values
-    function getMenuValues() {
-        return {
-            var1: d3.select("#menu1").property("value"),
-            var2: d3.select("#menu2").property("value"),
-            var3: d3.select("#menu3").property("value")
-        };
-    }
+    var nameMap = {};
+    csvData.forEach(function(d) {
+        nameMap[d.iso_3166_2.trim()] = d.county_name;
+    });
 
     // Map uses only menu1
     function updateMap(variable) {
@@ -176,7 +308,7 @@ function makeMap(topoData, csvData) {
             .style("font-size", "9px");    
 
         // County transition    
-        svg.selectAll("path")
+        svg.selectAll("path.county")
             .transition()
             .duration(500)
             .style("fill", function(d) {
@@ -191,13 +323,8 @@ function makeMap(topoData, csvData) {
 
                 return value != null ? colorScale(value) : "#ccc";
             });
+        refreshAttributeTables();
     }
-
-    // iso to county name
-    var nameMap = {};
-    csvData.forEach(function(d) {
-        nameMap[d.iso_3166_2.trim()] = d.county_name;
-    });
 
     // draw path
     svg.selectAll("path")
@@ -210,27 +337,38 @@ function makeMap(topoData, csvData) {
         return "county-" + (d.properties.iso_3166_2 || "").trim();
     })
 
+    // select
+    .on("click", function(event, d) {
+            var key = (d.properties.iso_3166_2 || "").trim();
+            handleCountyClick(key);
+    })
     // coordinated highlight
     .on("mouseover", function(event, d) {
         var key = (d.properties.iso_3166_2 || "").trim();
         var name = nameMap[key] || key;
 
-        // highlight county
-        d3.select(this)
-            .raise()
-            .style("stroke", "black")
-            .style("stroke-width", "3px");
-
-        // highlight matching bar
-        d3.selectAll(".chart-element")
+        // Only apply hover stroke if not already selected
+            if (!window.selectedCounties.includes(key)) {
+                d3.select(this)
+                    .raise()
+                    .style("stroke", "black")
+                    .style("stroke-width", "3px");
+            }
+ 
+            d3.selectAll(".chart-element")
                 .filter(function(cd) {
-                    return (cd.iso_3166_2 || "").trim() === key;
+                    return cd && (cd.iso_3166_2 || "").trim() === key;
+                })
+                .filter(function() {
+                    return !this.classList.contains("chart-selected-1") &&
+                           !this.classList.contains("chart-selected-2");
                 })
                 .style("stroke", "black")
                 .style("stroke-width", "2.5px");
  
             showTooltip(event, name);
-    })
+        })
+        
     .on("mousemove", function(event) {
         // tooltip follow
         var ttW = d3.select("#tooltip").node().offsetWidth;
@@ -240,20 +378,26 @@ function makeMap(topoData, csvData) {
         d3.select("#tooltip").style("left", x + "px").style("top", y + "px");
     })
 
-    .on("mouseout", function() {
-
-        // reset county
-        d3.select(this)
-            .style("stroke", null)
-            .style("stroke-width", null);
-
-        // reset bars
-        d3.selectAll(".chart-element")
-            .style("stroke", null)
-            .style("stroke-width", null);
-        hideTooltip();
-    });
-
+    .on("mouseout", function(event, d) {
+            var key = (d.properties.iso_3166_2 || "").trim();
+ 
+            if (!window.selectedCounties.includes(key)) {
+                d3.select(this)
+                    .style("stroke", null)
+                    .style("stroke-width", null);
+            }
+ 
+            d3.selectAll(".chart-element")
+                .filter(function() {
+                    return !this.classList.contains("chart-selected-1") &&
+                           !this.classList.contains("chart-selected-2");
+                })
+                .style("stroke", null)
+                .style("stroke-width", null);
+ 
+            hideTooltip();
+        });
+    
     // Menu render
         var init = getMenuValues();
 
@@ -277,5 +421,8 @@ function makeMap(topoData, csvData) {
     //	.datum(graticule())
     //	.attr("class", "graticule")
     //	.attr("d", path);//
+
+    window._updateMap = updateMap;
+
 }
 

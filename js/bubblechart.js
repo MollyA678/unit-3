@@ -1,3 +1,4 @@
+// bubblechart.js
 // margins
 var margin = { top: 20, right: 20, bottom: 80, left: 80 };
 
@@ -22,6 +23,73 @@ function flanneryScale(value, min, max) {
     return minRadius + (Math.pow(value / max, 0.57) * (maxRadius - minRadius));
 }
 
+// coordination
+function chartMouseover(event, d) {
+    var key = (d.iso_3166_2 || "").trim();
+ 
+    // Only apply hover if not already in a selection class
+    if (!this.classList.contains("chart-selected-1") &&
+        !this.classList.contains("chart-selected-2")) {
+        d3.select(this)
+            .style("stroke", "black")
+            .style("stroke-width", "2.5px");
+    }
+ 
+    var countyNode = d3.select("#county-" + key);
+    if (!window.selectedCounties || !window.selectedCounties.includes(key)) {
+        countyNode.raise();
+        countyNode.style("stroke", "black").style("stroke-width", "3px");
+    }
+ 
+    d3.select("#tooltip")
+        .style("display", "block")
+        .text(d.county_name);
+ 
+    var ttW = d3.select("#tooltip").node().offsetWidth;
+    var ttH = d3.select("#tooltip").node().offsetHeight;
+    var x = Math.min(event.pageX + 12, window.scrollX + window.innerWidth  - ttW - 8);
+    var y = Math.min(event.pageY + 12, window.scrollY + window.innerHeight - ttH - 8);
+    d3.select("#tooltip")
+        .style("left", x + "px")
+        .style("top",  y + "px");
+}
+ 
+function chartMousemove(event) {
+    var ttW = d3.select("#tooltip").node().offsetWidth;
+    var ttH = d3.select("#tooltip").node().offsetHeight;
+    var x = Math.min(event.pageX + 12, window.scrollX + window.innerWidth  - ttW - 8);
+    var y = Math.min(event.pageY + 12, window.scrollY + window.innerHeight - ttH - 8);
+    d3.select("#tooltip")
+        .style("left", x + "px")
+        .style("top",  y + "px");
+}
+ 
+function chartMouseout(event, d) {
+    var key = (d.iso_3166_2 || "").trim();
+ 
+    if (!this.classList.contains("chart-selected-1") &&
+        !this.classList.contains("chart-selected-2")) {
+        d3.select(this)
+            .style("stroke", null)
+            .style("stroke-width", null);
+    }
+ 
+    if (!window.selectedCounties || !window.selectedCounties.includes(key)) {
+        d3.select("#county-" + key)
+            .style("stroke", null)
+            .style("stroke-width", null);
+    }
+ 
+    d3.select("#tooltip").style("display", "none");
+}
+ 
+function chartClick(event, d) {
+    var key = (d.iso_3166_2 || "").trim();
+    if (typeof handleCountyClick === "function") {
+        handleCountyClick(key);
+    }
+}
+ 
 // choose chart type
 function updateChart(csvData, var1, var2, var3) {
     // Parse columns
@@ -38,16 +106,16 @@ function updateChart(csvData, var1, var2, var3) {
 
         // bar chart
         csvData.sort((a, b) => b[var1] - a[var1]);
-
+ 
         var xScale = d3.scaleBand()
             .domain(csvData.map(d => d.iso_3166_2))
             .range([0, chartWidth])
             .padding(0.1);
-
+ 
         var yScale = d3.scaleLinear()
             .domain([0, d3.max(csvData, d => d[var1])])
             .range([chartHeight, 0]);
-
+ 
         chart.selectAll(".chart-element")
             .data(csvData, d => d.iso_3166_2)
             .enter()
@@ -59,48 +127,12 @@ function updateChart(csvData, var1, var2, var3) {
             .attr("y", d => yScale(d[var1]))
             .attr("height", d => chartHeight - yScale(d[var1]))
             .attr("fill", d => colorScale(d[var1]))
-            .on("mouseover", function(event, d) {
-                var key = (d.iso_3166_2 || "").trim();
-                d3.select(this)
-                    .style("stroke", "black")
-                    .style("stroke-width", "2.5px");
-                var countyNode = d3.select("#county-" + key);
-                countyNode.raise();
-                countyNode.style("stroke", "black").style("stroke-width", "3px");
-                d3.select("#tooltip")
-                    .style("display", "block")
-                    .text(d.county_name);
-                var ttW = d3.select("#tooltip").node().offsetWidth;
-                var ttH = d3.select("#tooltip").node().offsetHeight;
-                var x = Math.min(event.pageX + 12, window.scrollX + window.innerWidth  - ttW - 8);
-                var y = Math.min(event.pageY + 12, window.scrollY + window.innerHeight - ttH - 8);
-                d3.select("#tooltip")
-                    .style("left", x + "px")
-                    .style("top", y + "px");
-            })
-            .on("mousemove", function(event) {
-                var ttW = d3.select("#tooltip").node().offsetWidth;
-                var ttH = d3.select("#tooltip").node().offsetHeight;
-                var x = Math.min(event.pageX + 12, window.scrollX + window.innerWidth  - ttW - 8);
-                var y = Math.min(event.pageY + 12, window.scrollY + window.innerHeight - ttH - 8);
-                d3.select("#tooltip")
-                    .style("left", x + "px")
-                    .style("top", y + "px");
-            })
-            .on("mouseout", function() {
-                d3.select(this)
-                    .style("stroke", null)
-                    .style("stroke-width", null);
-                d3.selectAll(".county")
-                    .style("stroke", null)
-                    .style("stroke-width", null);
-                d3.select("#tooltip")
-                    .style("display", "none");
-            });
-
-        chart.append("g")
-            .attr("class", "y-axis")
-            .call(d3.axisLeft(yScale));
+            .on("click", chartClick)
+            .on("mouseover", chartMouseover)
+            .on("mousemove", chartMousemove)
+            .on("mouseout", chartMouseout);
+ 
+        chart.append("g").attr("class", "y-axis").call(d3.axisLeft(yScale));
         chart.append("g")
             .attr("class", "x-axis")
             .attr("transform", "translate(0," + chartHeight + ")")
@@ -109,18 +141,18 @@ function updateChart(csvData, var1, var2, var3) {
             .attr("transform", "rotate(-45)")
             .style("text-anchor", "end")
             .style("font-size", "10px");
-
+ 
     } else if (var3 === "none") {
 
         // scatter plot
         var xScale = d3.scaleLinear()
             .domain([0, d3.max(csvData, d => d[var1])])
             .range([0, chartWidth]);
-
+ 
         var yScale = d3.scaleLinear()
             .domain([0, d3.max(csvData, d => d[var2])])
             .range([chartHeight, 0]);
-
+ 
         chart.selectAll(".chart-element")
             .data(csvData, d => d.iso_3166_2)
             .enter()
@@ -131,69 +163,31 @@ function updateChart(csvData, var1, var2, var3) {
             .attr("cy", d => yScale(d[var2]))
             .attr("r", 8)
             .attr("fill", d => colorScale(d[var1]))
-            .on("mouseover", function(event, d) {
-                var key = (d.iso_3166_2 || "").trim();
-                d3.select(this)
-                    .style("stroke", "black")
-                    .style("stroke-width", "2.5px");
-                var countyNode = d3.select("#county-" + key);
-                countyNode.raise();
-                countyNode
-                    .style("stroke", "black")
-                    .style("stroke-width", "3px");
-                d3.select("#tooltip")
-                    .style("display", "block")
-                    .text(d.county_name);
-                var ttW = d3.select("#tooltip").node().offsetWidth;
-                var ttH = d3.select("#tooltip").node().offsetHeight;
-                var x = Math.min(event.pageX + 12, window.scrollX + window.innerWidth  - ttW - 8);
-                var y = Math.min(event.pageY + 12, window.scrollY + window.innerHeight - ttH - 8);
-                d3.select("#tooltip")
-                    .style("left", x + "px")
-                    .style("top", y + "px");
-            })
-            .on("mousemove", function(event) {
-                var ttW = d3.select("#tooltip").node().offsetWidth;
-                var ttH = d3.select("#tooltip").node().offsetHeight;
-                var x = Math.min(event.pageX + 12, window.scrollX + window.innerWidth  - ttW - 8);
-                var y = Math.min(event.pageY + 12, window.scrollY + window.innerHeight - ttH - 8);
-                d3.select("#tooltip")
-                    .style("left", x + "px")
-                    .style("top", y + "px");
-            })
-            .on("mouseout", function() {
-                d3.select(this)
-                    .style("stroke", null)
-                    .style("stroke-width", null);
-                d3.selectAll(".county")
-                    .style("stroke", null)
-                    .style("stroke-width", null);
-                d3.select("#tooltip")
-                    .style("display", "none");
-            });
-
-        chart.append("g")
-            .attr("class", "y-axis")
-            .call(d3.axisLeft(yScale));
+            .on("click", chartClick)
+            .on("mouseover", chartMouseover)
+            .on("mousemove", chartMousemove)
+            .on("mouseout", chartMouseout);
+ 
+        chart.append("g").attr("class", "y-axis").call(d3.axisLeft(yScale));
         chart.append("g")
             .attr("class", "x-axis")
             .attr("transform", "translate(0," + chartHeight + ")")
             .call(d3.axisBottom(xScale));
-
+ 
     } else {
 
         // bubble chart
         var xScale = d3.scaleLinear()
             .domain([0, d3.max(csvData, d => d[var1])])
             .range([0, chartWidth]);
-
+ 
         var yScale = d3.scaleLinear()
             .domain([0, d3.max(csvData, d => d[var2])])
             .range([chartHeight, 0]);
-
+ 
         var sizeMin = d3.min(csvData, d => d[var3]);
         var sizeMax = d3.max(csvData, d => d[var3]);
-
+ 
         chart.selectAll(".chart-element")
             .data(csvData, d => d.iso_3166_2)
             .enter()
@@ -205,52 +199,21 @@ function updateChart(csvData, var1, var2, var3) {
             .attr("r", d => flanneryScale(d[var3], sizeMin, sizeMax))
             .attr("fill", d => colorScale(d[var1]))
             .attr("fill-opacity", 0.8)
-            .on("mouseover", function(event, d) {
-                var key = (d.iso_3166_2 || "").trim();
-                d3.select(this)
-                    .style("stroke", "black")
-                    .style("stroke-width", "2.5px");
-                var countyNode = d3.select("#county-" + key);
-                countyNode.raise();
-                countyNode.style("stroke", "black").style("stroke-width", "3px");
-                d3.select("#tooltip")
-                    .style("display", "block")
-                    .text(d.county_name);
-                var ttW = d3.select("#tooltip").node().offsetWidth;
-                var ttH = d3.select("#tooltip").node().offsetHeight;
-                var x = Math.min(event.pageX + 12, window.scrollX + window.innerWidth  - ttW - 8);
-                var y = Math.min(event.pageY + 12, window.scrollY + window.innerHeight - ttH - 8);
-                d3.select("#tooltip")
-                    .style("left", x + "px")
-                    .style("top", y + "px");
-            })
-            .on("mousemove", function(event) {
-                var ttW = d3.select("#tooltip").node().offsetWidth;
-                var ttH = d3.select("#tooltip").node().offsetHeight;
-                var x = Math.min(event.pageX + 12, window.scrollX + window.innerWidth  - ttW - 8);
-                var y = Math.min(event.pageY + 12, window.scrollY + window.innerHeight - ttH - 8);
-                d3.select("#tooltip")
-                    .style("left", x + "px")
-                    .style("top", y + "px");
-            })
-            .on("mouseout", function() {
-                d3.select(this)
-                    .style("stroke", null)
-                    .style("stroke-width", null);
-                d3.selectAll(".county")
-                    .style("stroke", null)
-                    .style("stroke-width", null);
-                d3.select("#tooltip")
-                    .style("display", "none");
-            });
-
-        chart.append("g")
-            .attr("class", "y-axis")
-            .call(d3.axisLeft(yScale));
+            .on("click", chartClick)
+            .on("mouseover", chartMouseover)
+            .on("mousemove", chartMousemove)
+            .on("mouseout", chartMouseout);
+ 
+        chart.append("g").attr("class", "y-axis").call(d3.axisLeft(yScale));
         chart.append("g")
             .attr("class", "x-axis")
             .attr("transform", "translate(0," + chartHeight + ")")
             .call(d3.axisBottom(xScale));
+    }
+
+    // re-do selection
+    if (typeof applySelectionStyles === "function") {
+        applySelectionStyles();
     }
 }
 
