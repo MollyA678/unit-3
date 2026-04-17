@@ -284,6 +284,8 @@ select option { background: var(--navy-dark); color: var(--text-light); }
     display: flex;
     flex-direction: column;
     gap: 0;
+    min-width: 0;
+    overflow: hidden;
 }
 
 /* svg */
@@ -295,6 +297,8 @@ svg {
 
 #chart svg {
     background-color: #f0ede8;
+    max-width: 100%;
+    display: block;
 }
 
 .axis-label {
@@ -305,6 +309,19 @@ svg {
 }
 
 #bubble-legend-container svg {
+    background: transparent !important;
+    border: none !important;
+    max-width: 100%;
+    display: block;
+}
+
+#legend-bar-wrap {
+    background: var(--navy);
+    padding: 10px 28px 14px 28px;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+}
+
+#legend-bar-wrap svg {
     background: transparent !important;
     border: none !important;
 }

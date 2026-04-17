@@ -1,17 +1,25 @@
 // bubblechart.js
 // margins
-var margin = { top: 20, right: 20, bottom: 80, left: 80 };
+var margin = { top: 20, right: 30, bottom: 90, left: 80 };
 
-window.chartWidth = Math.floor(window.innerWidth * 0.42) - margin.left - margin.right;
-window.chartHeight = 480 - margin.top - margin.bottom;
+function getChartDimensions() {
+    var containerW = document.getElementById("right-panel").getBoundingClientRect().width || 600;
+    return {
+        w: Math.floor(containerW) - margin.left - margin.right - 16,
+        h: 420
+    };
+}
 
-var chartWidth = window.chartWidth;
-var chartHeight = window.chartHeight;
+var _dims = getChartDimensions();
+window.chartWidth  = _dims.w;
+window.chartHeight = _dims.h;
 
-var chart = d3.select("#chart")
+var chartSvg = d3.select("#chart")
     .append("svg")
-    .attr("width", chartWidth + margin.left + margin.right)
-    .attr("height", chartHeight + margin.top + margin.bottom)
+    .attr("width",  window.chartWidth  + margin.left + margin.right)
+    .attr("height", window.chartHeight + margin.top  + margin.bottom);
+
+var chart = chartSvg
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -141,8 +149,12 @@ function updateBubbleLegend(csvData, var3) {
         .text("Bubble Size: " + variableLabels[var3]);
 
     // legend vals
-    var legendVals = [minV, (minV + maxV) / 2, maxV];
-    var labels = ["Min", "Mid", "Max"];
+    function niceRound(v) {
+        if (v === 0) return 0;
+        var mag = Math.pow(10, Math.floor(Math.log10(Math.abs(v))));
+        return Math.round(v / mag) * mag;
+    }
+    var legendVals = [niceRound(minV), niceRound((minV + maxV) / 2), niceRound(maxV)];
 
     var startX = 40;
     var spacing = (legendSvgWidth - startX - 20) / 3;
@@ -174,6 +186,17 @@ function updateBubbleLegend(csvData, var3) {
  
 // choose chart type
 function updateChart(csvData, var1, var2, var3) {
+
+    var dims = getChartDimensions();
+    var chartWidth  = dims.w;
+    var chartHeight = dims.h;
+    window.chartWidth  = chartWidth;
+    window.chartHeight = chartHeight;
+
+    d3.select("#chart svg")
+        .attr("width",  chartWidth  + margin.left + margin.right)
+        .attr("height", chartHeight + margin.top  + margin.bottom);
+
     // Parse columns
     csvData.forEach(function(d) {
         d[var1] = +d[var1];
@@ -181,160 +204,166 @@ function updateChart(csvData, var1, var2, var3) {
         if (var3 !== "none") d[var3] = +d[var3];
     });
 
-    // Clear chart
-    chart.selectAll("*").remove();
+    chart.transition().duration(180).style("opacity", 0).end().then(function() {
+        chart.selectAll("*").remove();
+        _drawChart(csvData, var1, var2, var3, chartWidth, chartHeight);
+        chart.style("opacity", 0)
+            .transition().duration(250).style("opacity", 1);
+    }).catch(function() {
+        chart.selectAll("*").remove();
+        _drawChart(csvData, var1, var2, var3, chartWidth, chartHeight);
+        chart.style("opacity", 1);
+    });
 
-    updateBubbleLegend(csvData, var3);
+    function _drawChart(csvData, var1, var2, var3, chartWidth, chartHeight) {
 
-    if (var2 === "none") {
+        updateBubbleLegend(csvData, var3);
 
-        // bar chart
-        csvData.sort((a, b) => b[var1] - a[var1]);
- 
-        var xScale = d3.scaleBand()
-            .domain(csvData.map(d => d.iso_3166_2))
-            .range([0, chartWidth])
-            .padding(0.1);
- 
-        var yScale = d3.scaleLinear()
-            .domain([0, d3.max(csvData, d => d[var1])])
-            .range([chartHeight, 0]);
- 
-        chart.selectAll(".chart-element")
-            .data(csvData, d => d.iso_3166_2)
-            .enter()
-            .append("rect")
-            .attr("class", "chart-element")
-            .attr("id", d => "chart-element-" + (d.iso_3166_2 || "").trim())
-            .attr("x", d => xScale(d.iso_3166_2))
-            .attr("width", xScale.bandwidth())
-            .attr("y", d => yScale(d[var1]))
-            .attr("height", d => chartHeight - yScale(d[var1]))
-            .attr("fill", d => colorScale(d[var1]))
-            .on("click", chartClick)
-            .on("mouseover", chartMouseover)
-            .on("mousemove", chartMousemove)
-            .on("mouseout", chartMouseout);
- 
-        chart.append("g")
-            .attr("class", "y-axis")
-            .call(d3.axisLeft(yScale));
-        chart.append("g")
-            .attr("class", "x-axis")
-            .attr("transform", "translate(0," + chartHeight + ")")
-            .call(d3.axisBottom(xScale))
-            .selectAll("text")
-            .attr("transform", "rotate(-45)")
-            .style("text-anchor", "end")
-            .style("font-size", "10px");
+        if (var2 === "none") {
 
-        // Y axis label
-        chart.append("text")
-            .attr("class", "axis-label")
-            .attr("transform", "rotate(-90)")
-            .attr("x", -(chartHeight / 2))
-            .attr("y", -margin.left + 16)
-            .attr("text-anchor", "middle")
-            .text(variableLabels[var1]);
- 
-    } else if (var3 === "none") {
+            // bar chart
+            csvData.sort((a, b) => b[var1] - a[var1]);
 
-        // scatter plot
-        var xScale = makeScale(csvData, var1, [0, chartWidth]);
-        var yScale = makeScale(csvData, var2, [chartHeight, 0]);
- 
-        chart.selectAll(".chart-element")
-            .data(csvData, d => d.iso_3166_2)
-            .enter()
-            .append("circle")
-            .attr("class", "chart-element")
-            .attr("id", d => "chart-element-" + (d.iso_3166_2 || "").trim())
-            .attr("cx", d => xScale(d[var1]))
-            .attr("cy", d => yScale(d[var2]))
-            .attr("r", 8)
-            .attr("fill", d => colorScale(d[var1]))
-            .on("click", chartClick)
-            .on("mouseover", chartMouseover)
-            .on("mousemove", chartMousemove)
-            .on("mouseout", chartMouseout);
- 
-        chart.append("g").attr("class", "y-axis").call(d3.axisLeft(yScale));
-        chart.append("g")
-            .attr("class", "x-axis")
-            .attr("transform", "translate(0," + chartHeight + ")")
-            .call(d3.axisBottom(xScale));
+            var xScale = d3.scaleBand()
+                .domain(csvData.map(d => d.iso_3166_2))
+                .range([0, chartWidth])
+                .padding(0.1);
 
-        // X axis label
-        chart.append("text")
-            .attr("class", "axis-label")
-            .attr("x", chartWidth / 2)
-            .attr("y", chartHeight + margin.bottom - 10)
-            .attr("text-anchor", "middle")
-            .text(variableLabels[var1]);
+            var yScale = d3.scaleLinear()
+                .domain([0, d3.max(csvData, d => d[var1])])
+                .range([chartHeight, 0]);
 
-        // Y axis label
-        chart.append("text")
-            .attr("class", "axis-label")
-            .attr("transform", "rotate(-90)")
-            .attr("x", -(chartHeight / 2))
-            .attr("y", -margin.left + 16)
-            .attr("text-anchor", "middle")
-            .text(variableLabels[var2]);
- 
-    } else {
+            chart.selectAll(".chart-element")
+                .data(csvData, d => d.iso_3166_2)
+                .enter()
+                .append("rect")
+                .attr("class", "chart-element")
+                .attr("id", d => "chart-element-" + (d.iso_3166_2 || "").trim())
+                .attr("x", d => xScale(d.iso_3166_2))
+                .attr("width", xScale.bandwidth())
+                .attr("y", d => yScale(d[var1]))
+                .attr("height", d => chartHeight - yScale(d[var1]))
+                .attr("fill", d => colorScale(d[var1]))
+                .on("click", chartClick)
+                .on("mouseover", chartMouseover)
+                .on("mousemove", chartMousemove)
+                .on("mouseout", chartMouseout);
 
-        // bubble chart
-        var xScale = makeScale(csvData, var1, [0, chartWidth]);
-        var yScale = makeScale(csvData, var2, [chartHeight, 0]);
- 
-        var sizeMin = d3.min(csvData, d => d[var3]);
-        var sizeMax = d3.max(csvData, d => d[var3]);
- 
-        chart.selectAll(".chart-element")
-            .data(csvData, d => d.iso_3166_2)
-            .enter()
-            .append("circle")
-            .attr("class", "chart-element")
-            .attr("id", d => "chart-element-" + (d.iso_3166_2 || "").trim())
-            .attr("cx", d => xScale(d[var1]))
-            .attr("cy", d => yScale(d[var2]))
-            .attr("r", d => flanneryScale(d[var3], sizeMin, sizeMax))
-            .attr("fill", d => colorScale(d[var1]))
-            .attr("fill-opacity", 0.8)
-            .on("click", chartClick)
-            .on("mouseover", chartMouseover)
-            .on("mousemove", chartMousemove)
-            .on("mouseout", chartMouseout);
- 
-        chart.append("g").attr("class", "y-axis").call(d3.axisLeft(yScale));
-        chart.append("g")
-            .attr("class", "x-axis")
-            .attr("transform", "translate(0," + chartHeight + ")")
-            .call(d3.axisBottom(xScale));
+            chart.append("g")
+                .attr("class", "y-axis")
+                .call(d3.axisLeft(yScale));
+            chart.append("g")
+                .attr("class", "x-axis")
+                .attr("transform", "translate(0," + chartHeight + ")")
+                .call(d3.axisBottom(xScale))
+                .selectAll("text")
+                .attr("transform", "rotate(-45)")
+                .style("text-anchor", "end")
+                .style("font-size", "10px");
 
-        // X axis label
-        chart.append("text")
-            .attr("class", "axis-label")
-            .attr("x", chartWidth / 2)
-            .attr("y", chartHeight + margin.bottom - 10)
-            .attr("text-anchor", "middle")
-            .text(variableLabels[var1]);
+            chart.append("text")
+                .attr("class", "axis-label")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -(chartHeight / 2))
+                .attr("y", -margin.left + 16)
+                .attr("text-anchor", "middle")
+                .text(variableLabels[var1]);
 
-        // Y axis label
-        chart.append("text")
-            .attr("class", "axis-label")
-            .attr("transform", "rotate(-90)")
-            .attr("x", -(chartHeight / 2))
-            .attr("y", -margin.left + 16)
-            .attr("text-anchor", "middle")
-            .text(variableLabels[var2]);
-    }
+        } else if (var3 === "none") {
 
-    // re-do selection
-    if (typeof applySelectionStyles === "function") {
-        applySelectionStyles();
-    }
-}
+            // scatter plot
+            var xScale = makeScale(csvData, var1, [0, chartWidth]);
+            var yScale = makeScale(csvData, var2, [chartHeight, 0]);
+
+            chart.selectAll(".chart-element")
+                .data(csvData, d => d.iso_3166_2)
+                .enter()
+                .append("circle")
+                .attr("class", "chart-element")
+                .attr("id", d => "chart-element-" + (d.iso_3166_2 || "").trim())
+                .attr("cx", d => xScale(d[var1]))
+                .attr("cy", d => yScale(d[var2]))
+                .attr("r", 8)
+                .attr("fill", d => colorScale(d[var1]))
+                .on("click", chartClick)
+                .on("mouseover", chartMouseover)
+                .on("mousemove", chartMousemove)
+                .on("mouseout", chartMouseout);
+
+            chart.append("g").attr("class", "y-axis").call(d3.axisLeft(yScale));
+            chart.append("g")
+                .attr("class", "x-axis")
+                .attr("transform", "translate(0," + chartHeight + ")")
+                .call(d3.axisBottom(xScale));
+
+            chart.append("text")
+                .attr("class", "axis-label")
+                .attr("x", chartWidth / 2)
+                .attr("y", chartHeight + margin.bottom - 10)
+                .attr("text-anchor", "middle")
+                .text(variableLabels[var1]);
+
+            chart.append("text")
+                .attr("class", "axis-label")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -(chartHeight / 2))
+                .attr("y", -margin.left + 16)
+                .attr("text-anchor", "middle")
+                .text(variableLabels[var2]);
+
+        } else {
+
+            // bubble chart
+            var xScale = makeScale(csvData, var1, [0, chartWidth]);
+            var yScale = makeScale(csvData, var2, [chartHeight, 0]);
+
+            var sizeMin = d3.min(csvData, d => d[var3]);
+            var sizeMax = d3.max(csvData, d => d[var3]);
+
+            chart.selectAll(".chart-element")
+                .data(csvData, d => d.iso_3166_2)
+                .enter()
+                .append("circle")
+                .attr("class", "chart-element")
+                .attr("id", d => "chart-element-" + (d.iso_3166_2 || "").trim())
+                .attr("cx", d => xScale(d[var1]))
+                .attr("cy", d => yScale(d[var2]))
+                .attr("r", d => flanneryScale(d[var3], sizeMin, sizeMax))
+                .attr("fill", d => colorScale(d[var1]))
+                .attr("fill-opacity", 0.8)
+                .on("click", chartClick)
+                .on("mouseover", chartMouseover)
+                .on("mousemove", chartMousemove)
+                .on("mouseout", chartMouseout);
+
+            chart.append("g").attr("class", "y-axis").call(d3.axisLeft(yScale));
+            chart.append("g")
+                .attr("class", "x-axis")
+                .attr("transform", "translate(0," + chartHeight + ")")
+                .call(d3.axisBottom(xScale));
+
+            chart.append("text")
+                .attr("class", "axis-label")
+                .attr("x", chartWidth / 2)
+                .attr("y", chartHeight + margin.bottom - 10)
+                .attr("text-anchor", "middle")
+                .text(variableLabels[var1]);
+
+            chart.append("text")
+                .attr("class", "axis-label")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -(chartHeight / 2))
+                .attr("y", -margin.left + 16)
+                .attr("text-anchor", "middle")
+                .text(variableLabels[var2]);
+        }
+
+        if (typeof applySelectionStyles === "function") {
+            applySelectionStyles();
+        }
+
+    } 
+}   
 
 // This is the main JavaScript file copied from Activity 3. All other comments are new to Activity 9 
 /*function initialize(){

@@ -6,11 +6,16 @@ var svg = d3.select("#myDiv")
     .append("svg")
     .attr("width", width)
     .attr("height", height);
+var countiesG = svg.append("g")
+    .attr("id", "counties-layer");
+var selectionG = svg.append("g")
+    .attr("id", "selection-layer");
 var legend = d3.select("#legend-container")
     .append("svg")
-    .attr("width", 550)
+    .attr("width", "100%")
     .attr("height", 60)
-    .attr("id", "legend");
+    .attr("id", "legend")
+    .style("overflow", "visible");
 var colorScale;
 
 window.selectedCounties = [];   
@@ -26,6 +31,16 @@ var variableLabels = {
     highschool_graduate_rate: "HS Graduate Rate (%)"
 };
 window.variableLabels = variableLabels;
+
+var breakTypes = {
+    fdi_huf_millions:            "jenks",
+    employment_rate:             "quantile",
+    unemployment_rate:           "jenks",
+    gross_avg_salary_huf:        "jenks",
+    GDP_percapita_huf_thousands: "jenks",
+    highschool_graduate_rate:    "stddev"
+};
+
 
 var allVars = Object.keys(variableLabels);
  
@@ -104,28 +119,44 @@ window.deselectCounty = function(key) {
 // selection handling
 function applySelectionStyles() {
     var sel = window.selectedCounties;
- 
-    // Clear selection
-    svg.selectAll("path.county")
-        .classed("county-selected-1", false)
-        .classed("county-selected-2", false);
 
-    svg.selectAll("path.county")
-    .style("stroke", null)
-    .style("stroke-width", null);
- 
-    if (sel[0]) {
-        var n1 = d3.select("#county-" + sel[0]);
-        n1.classed("county-selected-1", true).raise();    }
-    if (sel[1]) {
-        var n2 = d3.select("#county-" + sel[1]);
-        n2.classed("county-selected-2", true).raise();    }
- 
-    // Chart elements
+    // reset county strokes
+    countiesG.selectAll("path.county")
+        .classed("county-selected-1", false)
+        .classed("county-selected-2", false)
+        .style("stroke", null)
+        .style("stroke-width", null);
+
+    // clear overlay
+    selectionG.selectAll("*").remove();
+
+    // For each selected county, draw a ghost path in the overlay layer to avoid clip
+    [sel[0], sel[1]].forEach(function(key, idx) {
+        if (!key) return;
+        var colorClass = idx === 0 ? "county-selected-1" : "county-selected-2";
+        var strokeColor = idx === 0 ? "#e91e8c" : "#39d353";
+
+        // find OG feature
+        var originalPath = countiesG.select("#county-" + key);
+        if (originalPath.empty()) return;
+        var datum = originalPath.datum();
+
+        selectionG.append("path")
+            .datum(datum)
+            .attr("d", path)          // path is the geoPath — must be in scope
+            .attr("class", "county county-overlay " + colorClass)
+            .attr("id", "overlay-county-" + key)
+            .style("fill", originalPath.style("fill") || colorScale(window.countyDataMap[key] ? +window.countyDataMap[key][getMenuValues().var1] : 0))
+            .style("stroke", strokeColor)
+            .style("stroke-width", "3.5px")
+            .style("pointer-events", "none"); // don't interfere with mouse events on real paths
+    });
+
+    // chart elements
     d3.selectAll(".chart-element")
         .classed("chart-selected-1", false)
         .classed("chart-selected-2", false);
- 
+
     if (sel[0]) {
         d3.selectAll(".chart-element")
             .filter(function(d) { return d && (d.iso_3166_2 || "").trim() === sel[0]; })
@@ -243,32 +274,38 @@ function makeMap(topoData, csvData) {
             .map(d => d[variable])
             .filter(v => !isNaN(v));
 
-        // ckmeans clustering
-        var clusters = ss.ckmeans(values, 5);
+        // ckmeans clustering with apt break types and colors
+        var domain;
+        var type = breakTypes[variable] || "jenks";
 
-        var breaks = clusters.map(cluster => d3.min(cluster));
+        if (type === "jenks") {
+            var clusters = ss.ckmeans(values, 5);
+            var breaks = clusters.map(cluster => d3.min(cluster));
+            domain = breaks.slice(1);
 
-        console.log("Clusters:", clusters);
-        console.log("Breaks:", breaks);
+        } else if (type === "quantile") {
+            colorScale = d3.scaleQuantile()
+                .domain(values)
+                .range(["#ffffcc","#a1dab4","#41b6c4","#2c7fb8","#253494"]);
+            domain = null; // scaleQuantile doesn't use scaleThreshold
 
-        // colors
-        var domain = breaks.slice(1);
+        } else if (type === "stddev") {
+            var mean = ss.mean(values);
+            var std  = ss.standardDeviation(values);
+            domain = [mean - std, mean - std * 0.25, mean + std * 0.25, mean + std];
+        }
 
-        colorScale = d3.scaleThreshold()
-            .domain(domain)
-            .range([
-                "#ffffcc",
-                "#a1dab4",
-                "#41b6c4",
-                "#2c7fb8",
-                "#253494"
-            ]);
+        if (domain !== null) {
+            colorScale = d3.scaleThreshold()
+                .domain(domain)
+                .range(["#ffffcc","#a1dab4","#41b6c4","#2c7fb8","#253494"]);
+        }
              
         // legend
         legend.selectAll("*").remove();
 
-        var legendWidth = 550;
-        var legendHeight = 10;
+        var legendWidth = document.getElementById("legend-container").getBoundingClientRect().width || 700;
+        legendWidth = Math.max(legendWidth - 40, 400);        var legendHeight = 10;
         legend.append("text")
             .attr("x", 0)
             .attr("y", -5)
@@ -301,25 +338,37 @@ function makeMap(topoData, csvData) {
             .attr("y", 30)
             .attr("text-anchor", "middle")
             .text(function(d, i) {
+                if (type === "quantile") {
+                    var q = colorScale.quantiles();
+                    var start = i === 0 ? d3.min(values) : q[i - 1];
+                    var end = q[i];
+                    return end !== undefined
+                        ? d3.format(",")(Math.round(start)) + "–" + d3.format(",")(Math.round(end))
+                        : d3.format(",")(Math.round(start)) + "+";
+                }
                 var start = legendValues[i];
                 var end = legendValues[i + 1];
-
-                if (end !== undefined) {
-                    return d3.format(",")(Math.round(start)) + "–" + d3.format(",")(Math.round(end));
-                } else {
-                    return d3.format(",")(Math.round(start)) + "+";
-                }
+                return end !== undefined
+                    ? d3.format(",")(Math.round(start)) + "–" + d3.format(",")(Math.round(end))
+                    : d3.format(",")(Math.round(start)) + "+";
             })
             .style("font-size", "9px");    
 
         // County transition    
-        svg.selectAll("path.county")
+        countiesG.selectAll("path.county")
             .transition()
             .duration(500)
             .style("fill", function(d) {
 
                 var key = (d.properties.iso_3166_2 || "").trim();
                 var value = dataMap[key];
+
+        selectionG.selectAll("path.county-overlay")
+            .each(function(d) {
+                var key = (d.properties.iso_3166_2 || "").trim();
+                var val = +window.countyDataMap[key][variable];
+                d3.select(this).style("fill", colorScale(val));
+            });
 
             // debug?
                 if (value == null) {
@@ -332,7 +381,7 @@ function makeMap(topoData, csvData) {
     }
 
     // draw path
-    svg.selectAll("path")
+    countiesG.selectAll("path")
     .data(geojson.features)
     .enter()
     .append("path")
