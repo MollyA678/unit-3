@@ -7,7 +7,7 @@ window.chartHeight = 400 - margin.top - margin.bottom;
 var chartWidth = window.chartWidth;
 var chartHeight = window.chartHeight;
 
-var chartSvg = d3.select("#chart")
+var chart = d3.select("#chart")
     .append("svg")
     .attr("width", chartWidth + margin.left + margin.right)
     .attr("height", chartHeight + margin.top + margin.bottom)
@@ -32,7 +32,7 @@ function updateChart(csvData, var1, var2, var3) {
     });
 
     // Clear chart
-    chartSvg.selectAll("*").remove();
+    chart.selectAll("*").remove();
 
     if (var2 === "none") {
 
@@ -48,7 +48,7 @@ function updateChart(csvData, var1, var2, var3) {
             .domain([0, d3.max(csvData, d => d[var1])])
             .range([chartHeight, 0]);
 
-        chartSvg.selectAll(".chart-element")
+        chart.selectAll(".chart-element")
             .data(csvData, d => d.iso_3166_2)
             .enter()
             .append("rect")
@@ -98,10 +98,10 @@ function updateChart(csvData, var1, var2, var3) {
                     .style("display", "none");
             });
 
-        chartSvg.append("g")
+        chart.append("g")
             .attr("class", "y-axis")
             .call(d3.axisLeft(yScale));
-        chartSvg.append("g")
+        chart.append("g")
             .attr("class", "x-axis")
             .attr("transform", "translate(0," + chartHeight + ")")
             .call(d3.axisBottom(xScale))
@@ -121,7 +121,7 @@ function updateChart(csvData, var1, var2, var3) {
             .domain([0, d3.max(csvData, d => d[var2])])
             .range([chartHeight, 0]);
 
-        chartSvg.selectAll(".chart-element")
+        chart.selectAll(".chart-element")
             .data(csvData, d => d.iso_3166_2)
             .enter()
             .append("circle")
@@ -172,10 +172,10 @@ function updateChart(csvData, var1, var2, var3) {
                     .style("display", "none");
             });
 
-        chartSvg.append("g")
+        chart.append("g")
             .attr("class", "y-axis")
             .call(d3.axisLeft(yScale));
-        chartSvg.append("g")
+        chart.append("g")
             .attr("class", "x-axis")
             .attr("transform", "translate(0," + chartHeight + ")")
             .call(d3.axisBottom(xScale));
@@ -194,7 +194,7 @@ function updateChart(csvData, var1, var2, var3) {
         var sizeMin = d3.min(csvData, d => d[var3]);
         var sizeMax = d3.max(csvData, d => d[var3]);
 
-        chartSvg.selectAll(".chart-element")
+        chart.selectAll(".chart-element")
             .data(csvData, d => d.iso_3166_2)
             .enter()
             .append("circle")
@@ -244,10 +244,10 @@ function updateChart(csvData, var1, var2, var3) {
                     .style("display", "none");
             });
 
-        chartSvg.append("g")
+        chart.append("g")
             .attr("class", "y-axis")
             .call(d3.axisLeft(yScale));
-        chartSvg.append("g")
+        chart.append("g")
             .attr("class", "x-axis")
             .attr("transform", "translate(0," + chartHeight + ")")
             .call(d3.axisBottom(xScale));
