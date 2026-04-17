@@ -2,7 +2,7 @@
 // margins
 var margin = { top: 20, right: 20, bottom: 80, left: 80 };
 
-window.chartWidth = Math.floor(window.innerWidth * 0.35) - margin.left - margin.right;
+window.chartWidth = Math.floor(window.innerWidth * 0.42) - margin.left - margin.right;
 window.chartHeight = 480 - margin.top - margin.bottom;
 
 var chartWidth = window.chartWidth;
@@ -109,6 +109,68 @@ function makeScale(csvData, variable, rangeArr) {
         .range(rangeArr)
         .nice();
 }
+
+function updateBubbleLegend(csvData, var3) {
+    var container = d3.select("#bubble-legend-container");
+    container.selectAll("*").remove();
+
+    if (var3 === "none") return;
+
+    var vals = csvData.map(d => +d[var3]).filter(v => !isNaN(v));
+    var minV = d3.min(vals);
+    var maxV = d3.max(vals);
+    var sizeMax = d3.max(vals);
+
+    var legendSvgWidth = window.chartWidth + margin.left + margin.right;
+    var legendSvgHeight = 80;
+
+    var svg = container.append("svg")
+        .attr("width", legendSvgWidth)
+        .attr("height", legendSvgHeight)
+        .style("background", "transparent")
+        .style("border", "none");
+
+    // title
+    svg.append("text")
+        .attr("x", 0)
+        .attr("y", 14)
+        .style("font-size", "11px")
+        .style("font-weight", "600")
+        .style("fill", "#6b7280")
+        .style("font-family", "DM Sans, sans-serif")
+        .text("Bubble Size: " + variableLabels[var3]);
+
+    // legend vals
+    var legendVals = [minV, (minV + maxV) / 2, maxV];
+    var labels = ["Min", "Mid", "Max"];
+
+    var startX = 40;
+    var spacing = (legendSvgWidth - startX - 20) / 3;
+
+    legendVals.forEach(function(v, i) {
+        var r = flanneryScale(v, minV, sizeMax);
+        var cx = startX + i * spacing + spacing / 2;
+        var cy = legendSvgHeight - 12 - r;
+
+        svg.append("circle")
+            .attr("cx", cx)
+            .attr("cy", cy + r)
+            .attr("r", r)
+            .attr("fill", "none")
+            .attr("stroke", "#6b7280")
+            .attr("stroke-width", 1.2)
+            .attr("stroke-dasharray", "3,2");
+
+        svg.append("text")
+            .attr("x", cx)
+            .attr("y", legendSvgHeight - 2)
+            .attr("text-anchor", "middle")
+            .style("font-size", "9px")
+            .style("fill", "#6b7280")
+            .style("font-family", "DM Sans, sans-serif")
+            .text(d3.format(",")(Math.round(v)));
+    });
+}
  
 // choose chart type
 function updateChart(csvData, var1, var2, var3) {
@@ -121,6 +183,8 @@ function updateChart(csvData, var1, var2, var3) {
 
     // Clear chart
     chart.selectAll("*").remove();
+
+    updateBubbleLegend(csvData, var3);
 
     if (var2 === "none") {
 
@@ -152,7 +216,9 @@ function updateChart(csvData, var1, var2, var3) {
             .on("mousemove", chartMousemove)
             .on("mouseout", chartMouseout);
  
-        chart.append("g").attr("class", "y-axis").call(d3.axisLeft(yScale));
+        chart.append("g")
+            .attr("class", "y-axis")
+            .call(d3.axisLeft(yScale));
         chart.append("g")
             .attr("class", "x-axis")
             .attr("transform", "translate(0," + chartHeight + ")")
@@ -161,6 +227,15 @@ function updateChart(csvData, var1, var2, var3) {
             .attr("transform", "rotate(-45)")
             .style("text-anchor", "end")
             .style("font-size", "10px");
+
+        // Y axis label
+        chart.append("text")
+            .attr("class", "axis-label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -(chartHeight / 2))
+            .attr("y", -margin.left + 16)
+            .attr("text-anchor", "middle")
+            .text(variableLabels[var1]);
  
     } else if (var3 === "none") {
 
@@ -188,6 +263,23 @@ function updateChart(csvData, var1, var2, var3) {
             .attr("class", "x-axis")
             .attr("transform", "translate(0," + chartHeight + ")")
             .call(d3.axisBottom(xScale));
+
+        // X axis label
+        chart.append("text")
+            .attr("class", "axis-label")
+            .attr("x", chartWidth / 2)
+            .attr("y", chartHeight + margin.bottom - 10)
+            .attr("text-anchor", "middle")
+            .text(variableLabels[var1]);
+
+        // Y axis label
+        chart.append("text")
+            .attr("class", "axis-label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -(chartHeight / 2))
+            .attr("y", -margin.left + 16)
+            .attr("text-anchor", "middle")
+            .text(variableLabels[var2]);
  
     } else {
 
@@ -219,6 +311,23 @@ function updateChart(csvData, var1, var2, var3) {
             .attr("class", "x-axis")
             .attr("transform", "translate(0," + chartHeight + ")")
             .call(d3.axisBottom(xScale));
+
+        // X axis label
+        chart.append("text")
+            .attr("class", "axis-label")
+            .attr("x", chartWidth / 2)
+            .attr("y", chartHeight + margin.bottom - 10)
+            .attr("text-anchor", "middle")
+            .text(variableLabels[var1]);
+
+        // Y axis label
+        chart.append("text")
+            .attr("class", "axis-label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -(chartHeight / 2))
+            .attr("y", -margin.left + 16)
+            .attr("text-anchor", "middle")
+            .text(variableLabels[var2]);
     }
 
     // re-do selection

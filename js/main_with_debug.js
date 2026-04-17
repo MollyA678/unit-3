@@ -25,7 +25,8 @@ var variableLabels = {
     GDP_percapita_huf_thousands: "GDP per Capita (HUF, thousands)",
     highschool_graduate_rate: "HS Graduate Rate (%)"
 };
- 
+window.variableLabels = variableLabels;
+
 var allVars = Object.keys(variableLabels);
  
 function getMenuValues() {

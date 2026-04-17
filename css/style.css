@@ -149,8 +149,8 @@ body {
 
 .attr-county-name {
     font-family: 'Playfair Display', serif;
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 750;
     color: var(--gold);
     white-space: nowrap;
     overflow: hidden;
@@ -275,21 +275,14 @@ select option { background: var(--navy-dark); color: var(--text-light); }
 }
 
 #container {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    padding: 16px;
-    gap: 0;
+    padding: 16px 8px;
 }
 
-#myDiv {
-    flex: 1;
-}
+/*#myDiv { empty post-bootstrap} */
 
 #right-panel {
     display: flex;
     flex-direction: column;
-    margin-left: 16px;
     gap: 0;
 }
 
@@ -302,6 +295,18 @@ svg {
 
 #chart svg {
     background-color: #f0ede8;
+}
+
+.axis-label {
+    font-size: 11px;
+    font-family: 'DM Sans', sans-serif;
+    fill: var(--text-mute, #6b7280);
+    font-weight: 500;
+}
+
+#bubble-legend-container svg {
+    background: transparent !important;
+    border: none !important;
 }
 
 /* counties */
@@ -350,7 +355,7 @@ svg {
 }
 
 .legendtext {
-    font-size: 11px;
+    font-size: 11.5px;
     text-anchor: middle;
     dominant-baseline: hanging;
 }
