@@ -3,8 +3,8 @@
     --navy:       #1a2340;
     --navy-dark:  #111827;
     --navy-mid:   #243050;
-    --cream:      #f7f4ef;
-    --cream-dark: #ede9e1;
+    --cream:      #eee8dc;
+    --cream-dark: #e2d9ca;
     --gold:       #c9a84c;
     --text-main:  #1a2340;
     --text-mute:  #6b7280;
@@ -296,9 +296,14 @@ select option { background: var(--navy-dark); color: var(--text-light); }
 
 /* svg */
 svg {
-    background-color: white;
+    background-color: #dce8f0;
     border: 1px solid var(--border);
     border-radius: 4px;
+    border-color: #b8cdd8;
+}
+
+#chart svg {
+    background-color: #f0ede8;
 }
 
 /* counties */
@@ -316,23 +321,25 @@ svg {
 
 /*  Two slots for selected counties */
 .county-selected-1 {
-    stroke: var(--red) !important;
+    stroke: #6d6d6d !important;
     stroke-width: 3px !important;
+    paint-order: stroke-fill;
 }
 
 .county-selected-2 {
-    stroke: var(--orange) !important;
+    stroke: #6d6d6d !important;
     stroke-width: 3px !important;
+    paint-order: stroke-fill;
 }
 
 /* Chart selecting */
 .chart-selected-1 {
-    stroke: var(--red) !important;
+    stroke: #6d6d6d !important;
     stroke-width: 3px !important;
 }
 
 .chart-selected-2 {
-    stroke: var(--orange) !important;
+    stroke: #6d6d6d !important;
     stroke-width: 3px !important;
 }
 

@@ -22,7 +22,7 @@ var variableLabels = {
     employment_rate: "Employment Rate (%)",
     unemployment_rate: "Unemployment Rate (%)",
     gross_avg_salary_huf: "Gross Avg Salary (HUF)",
-    GDP_percapita_huf_thousands: "GDP per Capita (HUF k)",
+    GDP_percapita_huf_thousands: "GDP per Capita (HUF, thousands)",
     highschool_graduate_rate: "HS Graduate Rate (%)"
 };
  
@@ -108,13 +108,17 @@ function applySelectionStyles() {
     svg.selectAll("path.county")
         .classed("county-selected-1", false)
         .classed("county-selected-2", false);
+
+    svg.selectAll("path.county")
+    .style("stroke", null)
+    .style("stroke-width", null);
  
     if (sel[0]) {
-        d3.select("#county-" + sel[0]).classed("county-selected-1", true);
-    }
+        var n1 = d3.select("#county-" + sel[0]);
+        n1.classed("county-selected-1", true).raise();    }
     if (sel[1]) {
-        d3.select("#county-" + sel[1]).classed("county-selected-2", true);
-    }
+        var n2 = d3.select("#county-" + sel[1]);
+        n2.classed("county-selected-2", true).raise();    }
  
     // Chart elements
     d3.selectAll(".chart-element")

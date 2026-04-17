@@ -3,7 +3,7 @@
 var margin = { top: 20, right: 20, bottom: 80, left: 80 };
 
 window.chartWidth = Math.floor(window.innerWidth * 0.35) - margin.left - margin.right;
-window.chartHeight = 400 - margin.top - margin.bottom;
+window.chartHeight = 480 - margin.top - margin.bottom;
 
 var chartWidth = window.chartWidth;
 var chartHeight = window.chartHeight;
@@ -89,6 +89,26 @@ function chartClick(event, d) {
         handleCountyClick(key);
     }
 }
+
+function makeScale(csvData, variable, rangeArr) {
+    var vals = csvData.map(d => +d[variable]).filter(v => !isNaN(v));
+    var minV = d3.min(vals);
+    var maxV = d3.max(vals);
+    var span = maxV - minV;
+    // log scale for large-range variables 
+    if (maxV > 0 && maxV / Math.max(minV, 1) > 50) {
+        return d3.scaleLog()
+            .domain([Math.max(minV * 0.9, 1), maxV * 1.1])
+            .range(rangeArr)
+            .nice();
+    }
+    // Linear with padding
+    var pad = span * 0.05;
+    return d3.scaleLinear()
+        .domain([Math.max(0, minV - pad), maxV + pad])
+        .range(rangeArr)
+        .nice();
+}
  
 // choose chart type
 function updateChart(csvData, var1, var2, var3) {
@@ -145,13 +165,8 @@ function updateChart(csvData, var1, var2, var3) {
     } else if (var3 === "none") {
 
         // scatter plot
-        var xScale = d3.scaleLinear()
-            .domain([0, d3.max(csvData, d => d[var1])])
-            .range([0, chartWidth]);
- 
-        var yScale = d3.scaleLinear()
-            .domain([0, d3.max(csvData, d => d[var2])])
-            .range([chartHeight, 0]);
+        var xScale = makeScale(csvData, var1, [0, chartWidth]);
+        var yScale = makeScale(csvData, var2, [chartHeight, 0]);
  
         chart.selectAll(".chart-element")
             .data(csvData, d => d.iso_3166_2)
@@ -177,13 +192,8 @@ function updateChart(csvData, var1, var2, var3) {
     } else {
 
         // bubble chart
-        var xScale = d3.scaleLinear()
-            .domain([0, d3.max(csvData, d => d[var1])])
-            .range([0, chartWidth]);
- 
-        var yScale = d3.scaleLinear()
-            .domain([0, d3.max(csvData, d => d[var2])])
-            .range([chartHeight, 0]);
+        var xScale = makeScale(csvData, var1, [0, chartWidth]);
+        var yScale = makeScale(csvData, var2, [chartHeight, 0]);
  
         var sizeMin = d3.min(csvData, d => d[var3]);
         var sizeMax = d3.max(csvData, d => d[var3]);
