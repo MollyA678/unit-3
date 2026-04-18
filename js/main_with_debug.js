@@ -15,7 +15,7 @@ var selectionG = svg.append("g")
 var legend = d3.select("#legend-container")
     .append("svg")
     .attr("width", "100%")
-    .attr("height", 70)
+    .attr("height", 90)
     .attr("id", "legend")
     .style("overflow", "visible");
 var colorScale;
@@ -114,62 +114,9 @@ window.deselectCounty = function(key) {
     var idx = window.selectedCounties.indexOf(key);
     if (idx === -1) return;
     window.selectedCounties.splice(idx, 1);
-    applySelectionStyles();
+    window.applySelectionStyles();
     refreshAttributeTables();
 };
- 
-// selection handling
-function applySelectionStyles() {
-    var sel = window.selectedCounties;
-
-    // reset county strokes
-    countiesG.selectAll("path.county")
-        .classed("county-selected-1", false)
-        .classed("county-selected-2", false)
-        .style("stroke", null)
-        .style("stroke-width", null);
-
-    // clear overlay
-    selectionG.selectAll("*").remove();
-
-    // For each selected county, draw a ghost path in the overlay layer to avoid clip
-    [sel[0], sel[1]].forEach(function(key, idx) {
-        if (!key) return;
-        var colorClass = idx === 0 ? "county-selected-1" : "county-selected-2";
-        var strokeColor = idx === 0 ? "#e91e8c" : "#39d353";
-
-        // find OG feature
-        var originalPath = countiesG.select("#county-" + key);
-        if (originalPath.empty()) return;
-        var datum = originalPath.datum();
-
-        selectionG.append("path")
-            .datum(datum)
-            .attr("d", path)          // path is the geoPath — must be in scope
-            .attr("class", "county county-overlay " + colorClass)
-            .attr("id", "overlay-county-" + key)
-            .style("fill", originalPath.style("fill") || colorScale(window.countyDataMap[key] ? +window.countyDataMap[key][getMenuValues().var1] : 0))
-            .style("stroke", strokeColor)
-            .style("stroke-width", "3.5px")
-            .style("pointer-events", "none"); // don't interfere with mouse events on real paths
-    });
-
-    // chart elements
-    d3.selectAll(".chart-element")
-        .classed("chart-selected-1", false)
-        .classed("chart-selected-2", false);
-
-    if (sel[0]) {
-        d3.selectAll(".chart-element")
-            .filter(function(d) { return d && (d.iso_3166_2 || "").trim() === sel[0]; })
-            .classed("chart-selected-1", true);
-    }
-    if (sel[1]) {
-        d3.selectAll(".chart-element")
-            .filter(function(d) { return d && (d.iso_3166_2 || "").trim() === sel[1]; })
-            .classed("chart-selected-2", true);
-    }
-}
  
 function handleCountyClick(key) {
     var sel = window.selectedCounties;
@@ -188,7 +135,7 @@ function handleCountyClick(key) {
         }
     }
  
-    applySelectionStyles();
+    window.applySelectionStyles();
     refreshAttributeTables();
 }
 
@@ -253,8 +200,63 @@ function makeMap(topoData, csvData) {
     projection.fitSize([width, height], geojson);
     console.log("Projection:", projection);
 
-    var path = d3.geoPath()
-        .projection(projection);
+    window.path = d3.geoPath().projection(projection);
+    var path = window.path;
+
+    // selection handling
+function applySelectionStyles() {
+    var sel = window.selectedCounties;
+
+    // reset county strokes
+    countiesG.selectAll("path.county")
+        .classed("county-selected-1", false)
+        .classed("county-selected-2", false)
+        .style("stroke", null)
+        .style("stroke-width", null);
+
+    // clear overlay
+    selectionG.selectAll("*").remove();
+
+    // For each selected county, draw a ghost path in the overlay layer to avoid clip
+    [sel[0], sel[1]].forEach(function(key, idx) {
+        if (!key) return;
+        var colorClass = idx === 0 ? "county-selected-1" : "county-selected-2";
+        var strokeColor = idx === 0 ? "#6d6d6d" : "#6d6d6d";
+
+        // find OG feature
+        var originalPath = countiesG.select("#county-" + key);
+        if (originalPath.empty()) return;
+        var datum = originalPath.datum();
+
+        selectionG.append("path")
+            .datum(datum)
+            .attr("d", path)          
+            .attr("class", "county county-overlay " + colorClass)
+            .attr("id", "overlay-county-" + key)
+            .style("fill", originalPath.style("fill") || colorScale(window.countyDataMap[key] ? +window.countyDataMap[key][getMenuValues().var1] : 0))
+            .style("stroke", strokeColor)
+            .style("stroke-width", "3.5px")
+            .style("pointer-events", "none"); 
+    });
+
+    // chart elements
+    d3.selectAll(".chart-element")
+        .classed("chart-selected-1", false)
+        .classed("chart-selected-2", false);
+
+    if (sel[0]) {
+        d3.selectAll(".chart-element")
+            .filter(function(d) { return d && (d.iso_3166_2 || "").trim() === sel[0]; })
+            .classed("chart-selected-1", true);
+    }
+    if (sel[1]) {
+        d3.selectAll(".chart-element")
+            .filter(function(d) { return d && (d.iso_3166_2 || "").trim() === sel[1]; })
+            .classed("chart-selected-2", true);
+    }
+}
+
+window.applySelectionStyles = applySelectionStyles;
 
     var nameMap = {};
     csvData.forEach(function(d) {
@@ -310,7 +312,7 @@ function makeMap(topoData, csvData) {
         legendWidth = Math.max(legendWidth - 40, 400);        var legendHeight = 10;
         legend.append("text")
             .attr("x", 0)
-            .attr("y", -5)
+            .attr("y", 10)
             .text(variableLabels[variable])
             .style("font-size", "13px")
             .style("font-weight", "600")
@@ -328,7 +330,7 @@ function makeMap(topoData, csvData) {
             .enter()
             .append("g")
             .attr("transform", function(d, i) {
-                return "translate(" + (i * (legendWidth / colors.length)) + ",0)";
+                return "translate(" + (i * (legendWidth / colors.length)) + ",20)";
             });
 
         // rectangles
