@@ -410,6 +410,38 @@ svg {
     letter-spacing: 0.03em;
 }
 
+/* footer */
+#sources-footer {
+    background: var(--navy-dark);
+    border-top: 1px solid rgba(201,168,76,0.15);
+    padding: 6px 28px;
+}
+
+#sources-inner {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 7px;
+    color: rgba(232,228,220,0.45);
+    line-height: 1.6;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.sources-label {
+    font-weight: 600;
+    color: rgba(232,228,220,0.6);
+    margin-right: 4px;
+}
+
+#sources-inner a {
+    color: rgba(201,168,76,0.6);
+    text-decoration: none;
+}
+
+#sources-inner a:hover {
+    color: var(--gold);
+    text-decoration: underline;
+}
+
 /* from activity 8
 body {
 text-align: center;
