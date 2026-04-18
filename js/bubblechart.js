@@ -118,6 +118,7 @@ function makeScale(csvData, variable, rangeArr) {
         .nice();
 }
 
+// bubble legend
 function updateBubbleLegend(csvData, var3) {
     var container = d3.select("#bubble-legend-container");
     container.selectAll("*").remove();
@@ -127,60 +128,61 @@ function updateBubbleLegend(csvData, var3) {
     var vals = csvData.map(d => +d[var3]).filter(v => !isNaN(v));
     var minV = d3.min(vals);
     var maxV = d3.max(vals);
-    var sizeMax = d3.max(vals);
 
-    var legendSvgWidth = window.chartWidth + margin.left + margin.right;
-    var legendSvgHeight = 80;
-
-    var svg = container.append("svg")
-        .attr("width", legendSvgWidth)
-        .attr("height", legendSvgHeight)
-        .style("background", "transparent")
-        .style("border", "none");
-
-    // title
-    svg.append("text")
-        .attr("x", 0)
-        .attr("y", 14)
-        .style("font-size", "11px")
-        .style("font-weight", "600")
-        .style("fill", "#6b7280")
-        .style("font-family", "DM Sans, sans-serif")
-        .text("Bubble Size: " + variableLabels[var3]);
-
-    // legend vals
     function niceRound(v) {
         if (v === 0) return 0;
         var mag = Math.pow(10, Math.floor(Math.log10(Math.abs(v))));
         return Math.round(v / mag) * mag;
     }
+
     var legendVals = [niceRound(minV), niceRound((minV + maxV) / 2), niceRound(maxV)];
 
-    var startX = 40;
+    var maxR = flanneryScale(maxV, minV, maxV);
+    var svgHeight = maxR * 2 + 30;
+    svgHeight = Math.max(svgHeight, 80);
+
+    var legendSvgWidth = (window.chartWidth || 400) + margin.left + margin.right;
+
+    var bSvg = container.append("svg")
+        .attr("width", legendSvgWidth)
+        .attr("height", svgHeight + 20); 
+
+    // title
+    bSvg.append("text")
+        .attr("x", 0)
+        .attr("y", 13)
+        .style("font-size", "11px")
+        .style("font-weight", "600")
+        .style("fill", "var(--text-mute, #6b7280)")
+        .style("font-family", "DM Sans, sans-serif")
+        .text("Bubble Size: " + variableLabels[var3]);
+
+    var startX = 60;
     var spacing = (legendSvgWidth - startX - 20) / 3;
+    var baselineY = svgHeight + 20 - 18; 
 
     legendVals.forEach(function(v, i) {
-        var r = flanneryScale(v, minV, sizeMax);
+        var r = flanneryScale(v, minV, maxV);
         var cx = startX + i * spacing + spacing / 2;
-        var cy = legendSvgHeight - 12 - r;
+        var cy = baselineY - r; 
 
-        svg.append("circle")
+        bSvg.append("circle")
             .attr("cx", cx)
-            .attr("cy", cy + r)
+            .attr("cy", cy)
             .attr("r", r)
             .attr("fill", "none")
             .attr("stroke", "#6b7280")
             .attr("stroke-width", 1.2)
             .attr("stroke-dasharray", "3,2");
 
-        svg.append("text")
+        bSvg.append("text")
             .attr("x", cx)
-            .attr("y", legendSvgHeight - 2)
+            .attr("y", baselineY + 14)
             .attr("text-anchor", "middle")
-            .style("font-size", "9px")
+            .style("font-size", "10px")
             .style("fill", "#6b7280")
             .style("font-family", "DM Sans, sans-serif")
-            .text(d3.format(",")(Math.round(v)));
+            .text(d3.format(",")(v));
     });
 }
  

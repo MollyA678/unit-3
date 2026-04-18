@@ -4,8 +4,10 @@ var width = 800;
 var height = 600;
 var svg = d3.select("#myDiv")
     .append("svg")
-    .attr("width", width)
-    .attr("height", height);
+    .attr("viewBox", "0 0 " + width + " " + height)
+    .attr("preserveAspectRatio", "xMidYMid meet")
+    .style("width", "100%")
+    .style("height", "auto");
 var countiesG = svg.append("g")
     .attr("id", "counties-layer");
 var selectionG = svg.append("g")
@@ -13,7 +15,7 @@ var selectionG = svg.append("g")
 var legend = d3.select("#legend-container")
     .append("svg")
     .attr("width", "100%")
-    .attr("height", 60)
+    .attr("height", 70)
     .attr("id", "legend")
     .style("overflow", "visible");
 var colorScale;
@@ -310,8 +312,11 @@ function makeMap(topoData, csvData) {
             .attr("x", 0)
             .attr("y", -5)
             .text(variableLabels[variable])
-            .style("font-size", "12px")
-            .style("font-weight", "bold");
+            .style("font-size", "13px")
+            .style("font-weight", "600")
+            .style("fill", "white")
+            .style("font-family", "DM Sans, sans-serif");
+
         // combine min + breaks for labels
         var legendValues = [d3.min(values)].concat(breaks);
 
@@ -333,10 +338,18 @@ function makeMap(topoData, csvData) {
             .attr("fill", d => d);
 
         // labels
+        var slotW = legendWidth / colors.length;
+        // measure space and determine font size
+        var maxChars = colors.length === 5 ? 14 : 12; // "1,669,100–3,159,100" ~ 19 chars worst case
+        var fontSize = Math.max(7, Math.min(12, Math.floor(slotW / maxChars * 1.4)));
+
         legendGroup.append("text")
-            .attr("x", (legendWidth / colors.length) / 2)
-            .attr("y", 30)
+            .attr("x", slotW / 2)
+            .attr("y", 28)
             .attr("text-anchor", "middle")
+            .style("font-size", fontSize + "px")
+            .style("fill", "white")
+            .style("font-family", "DM Sans, sans-serif")
             .text(function(d, i) {
                 if (type === "quantile") {
                     var q = colorScale.quantiles();
@@ -351,8 +364,7 @@ function makeMap(topoData, csvData) {
                 return end !== undefined
                     ? d3.format(",")(Math.round(start)) + "–" + d3.format(",")(Math.round(end))
                     : d3.format(",")(Math.round(start)) + "+";
-            })
-            .style("font-size", "9px");    
+            });   
 
         // County transition    
         countiesG.selectAll("path.county")
@@ -467,6 +479,20 @@ function makeMap(topoData, csvData) {
         updateMap(v.var1);
         updateChart(csvData, v.var1, v.var2, v.var3);
     });
+
+    function syncMenu3State() {
+        var val = d3.select("#menu2").property("value");
+        var menu3 = document.getElementById("menu3");
+        if (val === "none") {
+            menu3.disabled = true;
+            menu3.value = "none";
+        } else {
+            menu3.disabled = false;
+        }
+    }
+
+    syncMenu3State();
+    d3.select("#menu2").on("change.sync", syncMenu3State);
 
 	// Graticule
 	//var graticule = d3.geoGraticule();
